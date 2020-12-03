@@ -14,6 +14,8 @@ MeshModel::MeshModel(std::vector<Face> faces, std::vector<glm::vec3> vertices, s
 	WorldTransformation = Utils::getIdMat();
 
 
+	color = glm::vec3(1, 0, 0);
+
 	setModelInMiddle();
 	setFrame(glm::fvec3(0.0f, 0.0f, 0.0f), Utils::getIdMat());
 
@@ -303,6 +305,16 @@ void MeshModel::setWorldTransformation(const glm::fmat4x4 transform = Utils::get
 {
 	WorldTransformation = transform;
 	updateFrame(transform);
+}
+
+void MeshModel::SetColor(const glm::vec3 _color)
+{
+	color = _color;
+}
+
+glm::vec3 MeshModel::GetColor() const
+{
+	return color;
 }
 
 void MeshModel::setFrame(glm::fvec3 center, glm::fmat3x3 CoordinateSystem)
