@@ -184,6 +184,46 @@ glm::fmat4x4 Utils::TransformationShear(const glm::fvec2 vector)
 	return glm::transpose(glm::fmat4x4(vec1, vec2, vec3, vec4));
 }
 
+glm::fmat4x4 Utils::TransformationOrthographic()
+{
+	glm::fvec4 vec1 = glm::fvec4(1.0f, 0, 0, 0);
+	glm::fvec4 vec2 = glm::fvec4(0, 1.0f, 0, 0);
+	glm::fvec4 vec3 = glm::fvec4(0, 0, 0, 0);
+	glm::fvec4 vec4 = glm::fvec4(0, 0, 0, 0);
+
+	return glm::transpose(glm::fmat4x4(vec1, vec2, vec3, vec4));
+}
+
+glm::fmat4x4 Utils::TransformationPerspective(const float d)
+{
+	glm::fvec4 vec1 = glm::fvec4(1.0f, 0, 0, 0);
+	glm::fvec4 vec2 = glm::fvec4(0, 1.0f, 0, 0);
+	glm::fvec4 vec3 = glm::fvec4(0, 0, 0, 0);
+	glm::fvec4 vec4 = glm::fvec4(0, 0, 1/d, 0);
+
+	return glm::transpose(glm::fmat4x4(vec1, vec2, vec3, vec4));
+}
+
+glm::fmat4x4 Utils::SetViewVolumeOrthographicTransformation(const float right, const float left, const float top, const float bottom, const float near, const float far)
+{
+	glm::fvec4 vec1 = glm::fvec4(2.0f/(right-left), 0, 0, -((right+left)/(right - left)));
+	glm::fvec4 vec2 = glm::fvec4(0, 2.0f/(top-bottom), 0, -((top + bottom) / (top - bottom)));
+	glm::fvec4 vec3 = glm::fvec4(0, 0, 2/(near - far), -((far + near) / (far - near)));
+	glm::fvec4 vec4 = glm::fvec4(0, 0, 0, 1.0f);
+
+	return glm::transpose(glm::fmat4x4(vec1, vec2, vec3, vec4));
+}
+
+glm::fmat4x4 Utils::SetViewVolumePerspectiveTransformation(const float right, const float left, const float top, const float bottom, const float near, const float far)
+{
+	glm::fvec4 vec1 = glm::fvec4(2*near/(right-left), 0, (right+left)/(right-left), 0);
+	glm::fvec4 vec2 = glm::fvec4(0, 2*near/(top - bottom), (top + bottom)/(top - bottom), 0);
+	glm::fvec4 vec3 = glm::fvec4(0, 0, -1*((far+near)/(far-near)), -1*((2*far*near)/(far-near)));
+	glm::fvec4 vec4 = glm::fvec4(0, 0, -1.0f, 0);
+
+	return glm::transpose(glm::fmat4x4(vec1, vec2, vec3, vec4));
+}
+
 glm::fmat4x4 Utils::getIdMat()
 {
 	glm::fvec4 vec1 = glm::fvec4(1.0f, 0, 0, 0);
@@ -201,17 +241,6 @@ glm::fvec3 Utils::applyTransformationToVector(const glm::fvec3 vec, glm::fmat4x4
 	return  Utils::Homogeneous2Euclidean(newv0);
 }
 
-float Utils::degrees2Radians(float degree)
-{
-	float pi = (2 * acos(0.0));
-	return degree*(pi / 180);
-}
-
-float Utils::radians2Degrees(float radian)
-{
-	float pi = (2 * acos(0.0));
-	return radian * (180 / pi);
-}
 
 glm::fvec3 Utils::Homogeneous2Euclidean(const glm::fvec4 vec)
 {

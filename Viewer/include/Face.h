@@ -11,8 +11,11 @@ public:
 	int GetNormalIndex(int index) const;
 	int GetTextureIndex(int index) const;
 	int GetNumberOfVertexIndexes() const;
+	void setFaceNormal(const glm::fvec3 normal);
+	glm::fvec3 getFaceNormal();
 
 private:
+	glm::fvec3 normal;
 	std::vector<int> vertex_indices_;
 	std::vector<int> normal_indices_;
 	std::vector<int> texture_indices_;

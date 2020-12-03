@@ -2,7 +2,7 @@
 #include <cmath>
 #include <algorithm>
 #include <iostream>
-
+#include "glm/ext.hpp"
 #include "Renderer.h"
 #include "InitShader.h"
 #include "Utils.h"
@@ -153,38 +153,39 @@ void Renderer::DrawTriangle(const glm::fvec3& v1, const glm::fvec3& v2, const gl
 
 void Renderer::DrawBoundingBox(MeshModel& model, const Scene& scene, glm::fmat4x4 trasformation , const glm::vec3& color)
 {
-	float BoxEdge = model.getMaxDitancePoints()/2;
+	float deltaX = (model.maxX_ - model.minX_) /2;
+	float deltaY = (model.maxY_ - model.minY_) / 2;
+	float deltaZ = (model.maxZ_ - model.minZ_) / 2;
 	glm::fvec3 vecArray[8] = {
-	glm::fvec3(BoxEdge, BoxEdge, BoxEdge),
-	glm::fvec3(BoxEdge, BoxEdge, -BoxEdge),
-	glm::fvec3(BoxEdge, -BoxEdge, BoxEdge),
-	glm::fvec3(BoxEdge, -BoxEdge, -BoxEdge),
-	glm::fvec3(-BoxEdge, BoxEdge, BoxEdge),
-	glm::fvec3(-BoxEdge, BoxEdge, -BoxEdge),
-	glm::fvec3(-BoxEdge, -BoxEdge, BoxEdge),
-	glm::fvec3(-BoxEdge, -BoxEdge, -BoxEdge)
+	glm::fvec3(deltaX, deltaY, deltaZ),
+	glm::fvec3(deltaX, deltaY, -deltaZ),
+	glm::fvec3(deltaX, -deltaY, deltaZ),
+	glm::fvec3(deltaX, -deltaY, -deltaZ),
+	glm::fvec3(-deltaX, deltaY, deltaZ),
+	glm::fvec3(-deltaX, deltaY, -deltaZ),
+	glm::fvec3(-deltaX, -deltaY, deltaZ),
+	glm::fvec3(-deltaX, -deltaY, -deltaZ)
 	};
 	
 	for (int i = 0; i < 8; i++) {
-		glm::fvec4 newv0 = trasformation * Utils::Euclidean2Homogeneous(vecArray[i]);
-		vecArray[i] = Utils::Homogeneous2Euclidean(newv0);
+		vecArray[i] =  Utils::applyTransformationToVector(vecArray[i], trasformation);
 	}
 	/*cubes look like this:
 	   e-------f
 	  /|      /|
-	 / |     / |
+	 / |#1   / |
 	a--|----b  |
 	|  g----|--h
-	| /     | /
+	| / #2   | /
 	c-------d*/
 
-	//face #1
+	//face #1 up
 	DrawLine(vecArray[0], vecArray[1], color);
 	DrawLine(vecArray[0], vecArray[2], color);
 	DrawLine(vecArray[3], vecArray[1], color);
 	DrawLine(vecArray[3], vecArray[2], color);
 
-	//face #2
+	//face #2 down
 	DrawLine(vecArray[7], vecArray[6], color);
 	DrawLine(vecArray[7], vecArray[5], color);
 	DrawLine(vecArray[4], vecArray[6], color);
@@ -198,25 +199,46 @@ void Renderer::DrawBoundingBox(MeshModel& model, const Scene& scene, glm::fmat4x
 
 }
 
-void Renderer::DrawFaceNormal(MeshModel& mesh , glm::vec3 vectorArray[3], const Scene& scene, glm::fmat4x4 trasformation, const glm::vec3& color)
+glm::vec3 Renderer::DrawFaceNormal(MeshModel& mesh, Face& face, glm::fmat4x4 trasformation, const glm::vec3& color)
 {
+		glm::vec3 vectorArray[3];
+
+		for (int k = 0; k < 3; k++) {
+			int index = face.GetVertexIndex(k) - 1;
+			vectorArray[k] = mesh.GetVertexAtIndex(index);
+		}
+
+		glm::fvec3 v0 = Utils::applyTransformationToVector(vectorArray[0], trasformation);
+		glm::fvec3 v1 = Utils::applyTransformationToVector(vectorArray[1], trasformation);
+		glm::fvec3 v2 = Utils::applyTransformationToVector(vectorArray[2], trasformation);
+		
+
 	
-	glm::fvec3 v0 = vectorArray[0];
-	glm::fvec3 v1 = vectorArray[1];
-	glm::fvec3 v2 = vectorArray[2];
+		float EdgeLength = glm::distance(v0, v1) / 2; //normals length
+		glm::fvec3 ActualCenter = (v0 + v1 + v2) / 3.0f; //center of face
+		glm::vec3 Actualnormal = glm::normalize(glm::cross((v1 - v0), (v2 - v0)));
+
+		glm::vec3 normalizedNormal = Actualnormal;
+
+		Actualnormal = Actualnormal * EdgeLength;
+		//face normals check
+		if (mesh.displayFaceNormals) {
+			DrawLine(ActualCenter, ActualCenter + Actualnormal, glm::fvec3(1, 1, 1));
+		}
+		return normalizedNormal;
+}
+
+void Renderer::DrawVerticesNormal(MeshModel& mesh, glm::fmat4x4 trasformation, const glm::vec3& color , float normalLength)
+{
+	for (int i = 0; i < mesh.GetVerticesCount(); i++) {
+		glm::fvec3 v = mesh.GetVertexAtIndex(i);
+		v = Utils::applyTransformationToVector(v, trasformation);
+
+		glm::fvec3 vn = mesh.getVerticesNormals()[i];
+		vn = vn * normalLength;
+		DrawLine(v, v + vn, color);
+	}
 	
-	glm::fvec3 center = (v0 + v1 + v2) / 3.0f;
-
-	glm::fvec3 normal = glm::cross((v1 - v0), (v2 - v0));
-
-	float EdgeLength = glm::distance(v0,v1);
-	float NormaleLength = glm::distance(center, center + normal);
-	float scale = EdgeLength / NormaleLength;
-
-	normal = Utils::applyTransformationToVector(normal, Utils::TransformationScale(glm::fvec3(scale, scale, scale)));
-	//normal = Utils::applyTransformationToVector(normal, Utils::TransformationScale(glm::fvec3(100, 100, 100)));
-	DrawLine(center, center + normal , color);
-
 }
 
 void Renderer::allocateZBuffer()
@@ -485,10 +507,13 @@ void Renderer::Render(const Scene& scene)
 	int centerX = windowsWidth / 2;
 	int centerY = windowsHeight / 2;
 	int boundingBoxEdgeLength = glm::min(centerX, centerY);
+
 	
 	if (scene.getShowAxis()) {
+
 		DrawLine(glm::fvec3(0, centerY, FLT_MIN), glm::fvec3(windowsWidth, centerY, FLT_MIN), glm::fvec3(0, 0, 0));
 		DrawLine(glm::fvec3(centerX, 0, FLT_MIN), glm::fvec3(centerX, windowsHeight, FLT_MIN), glm::fvec3(0, 0, 0));
+
 	}
 	
 	//rendering the MeshModels
@@ -501,10 +526,25 @@ void Renderer::Render(const Scene& scene)
 			
 			glm::fmat4x4 scale = Utils::TransformationScale(glm::fvec3(proportion, proportion, proportion));
 			glm::fmat4x4 translate = Utils::TransformationTransition(glm::fvec3(centerX, centerY, 0));
-			glm::fmat4x4 transformationMatrix = mesh.getWorldTransformation() * mesh.getObjectTransformation();
+			glm::fmat4x4 transformationMatrix = glm::inverse(mesh.getWorldTransformation()) * mesh.getObjectTransformation();
 
-			glm::fmat4x4 finalTransformation = translate * transformationMatrix * scale   ;
 
+			glm::fmat4x4 finalTransformation =   transformationMatrix * scale   ;
+
+			if (scene.GetCamOrWorldView())  // rendering the active camera view
+			{
+				Camera& currentCam = scene.GetActiveCamera();
+				glm::fmat4x4 inverserCameraTransformation = glm::lookAt(currentCam.getEye(), currentCam.getAt(), currentCam.getUp());
+				glm::fmat4x4 viewVolumeTransformation;
+
+				viewVolumeTransformation = currentCam.GetViewTransformation();
+				glm::fmat4x4 CameraTransformation = viewVolumeTransformation * inverserCameraTransformation;
+				finalTransformation = CameraTransformation * finalTransformation;
+				
+			}
+
+			//transfer objects to center screen with transalte transformation
+			finalTransformation = translate * finalTransformation;
 			//bounding box check
 			if (mesh.displayBoundingBox) {
 				DrawBoundingBox(mesh, scene, finalTransformation, glm::vec3(0, 0, 1));
@@ -512,7 +552,64 @@ void Renderer::Render(const Scene& scene)
 
 			std::vector<Face> faces = mesh.getFaces();
 
+			//draw faces
 			for (int j = 0; j < mesh.GetFacesCount(); j++)
+			{
+				Face& face = faces[j];
+
+				glm::vec3 vectorArray[3];
+
+				//extract verices of face
+				for (int k = 0; k < 3; k++) {
+					int index = face.GetVertexIndex(k) - 1;
+					glm::vec3 v =mesh.GetVertexAtIndex(index);
+					vectorArray[k] = Utils::applyTransformationToVector(v , finalTransformation);
+				}
+
+				
+				glm::fvec3  faceNormal = DrawFaceNormal(mesh ,face, finalTransformation, glm::vec3(1, 0, 1));
+				mesh.setFaceNormal(j ,faceNormal);
+				
+
+
+				DrawTriangle(vectorArray[0], vectorArray[1], vectorArray[2], glm::vec3(1, 0, 0));
+			}
+
+			//call function 
+			mesh.setVerteciesNormals();
+
+			//vertices normals check
+			if (mesh.displayVerticesNormals) {
+				DrawVerticesNormal(mesh, finalTransformation, glm::vec3(0, 0, 0.545), 40.0f);
+			}
+		}
+
+	}
+
+	//rendering the  camers to the screen
+	if (scene.GetCameraCount() > 0 && !scene.GetCamOrWorldView()) {
+		for (int i = 0; i < scene.GetCameraCount(); i++) {
+			Camera& tempCam = scene.GetCamera(i);
+			float proportion = 100.0f / tempCam.getMaxDitancePoints();
+
+			glm::fmat4x4 scale = Utils::TransformationScale(glm::fvec3(proportion, proportion, proportion));
+			glm::fmat4x4 translate = Utils::TransformationTransition(glm::fvec3(centerX, centerY, 0));
+
+			glm::fmat4x4 transformationMatrix;
+
+			//check if we are using LookAt or Transformation
+			if (tempCam.GetLookAtOrTransformation() == true) {
+				 transformationMatrix = glm::inverse(tempCam.getWorldTransformation()) * tempCam.getObjectTransformation();
+			}
+			else {
+				transformationMatrix =  glm::inverse(glm::lookAt(tempCam.getEye(), tempCam.getAt(), tempCam.getUp()));
+			}
+
+			glm::fmat4x4 finalTransformation = translate * transformationMatrix * scale;
+
+			std::vector<Face> faces = tempCam.getFaces();
+
+			for (int j = 0; j < tempCam.GetFacesCount(); j++)
 			{
 				Face& face = faces[j];
 
@@ -520,10 +617,10 @@ void Renderer::Render(const Scene& scene)
 
 				for (int k = 0; k < 3; k++) {
 					int index = face.GetVertexIndex(k) - 1;
-					glm::vec3 v = mesh.getCoordinateSystem() * mesh.GetVertexAtIndex(index);
-					vectorArray[k] = Utils::applyTransformationToVector(v , finalTransformation);
+					glm::vec3 v = tempCam.GetVertexAtIndex(index);
+					vectorArray[k] = Utils::applyTransformationToVector(v, finalTransformation);
 				}
-				
+
 
 				DrawTriangle(vectorArray[0], vectorArray[1], vectorArray[2], mesh.GetColor());
 				

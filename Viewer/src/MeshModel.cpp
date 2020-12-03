@@ -13,9 +13,12 @@ MeshModel::MeshModel(std::vector<Face> faces, std::vector<glm::vec3> vertices, s
 	ObjectTransformation = Utils::getIdMat();
 	WorldTransformation = Utils::getIdMat();
 
+
 	color = glm::vec3(1, 0, 0);
+
 	setModelInMiddle();
 	setFrame(glm::fvec3(0.0f, 0.0f, 0.0f), Utils::getIdMat());
+
 	//outputFacesAndVertices();
 	
 }
@@ -51,6 +54,11 @@ const glm::vec3& MeshModel::GetVertexAtIndex(int i) const
 }
 
 
+void MeshModel::setFaceNormal(int index, const glm::fvec3 normal)
+{
+	faces_[index].setFaceNormal(normal);
+}
+
 std::vector<Face> MeshModel::getFaces() const
 {
 	return faces_;
@@ -85,6 +93,21 @@ void MeshModel::outputFacesAndVertices()
 		}
 		std::cout<<std::endl;
 	}
+}
+
+std::vector<glm::vec3> MeshModel::getFacesNormals()
+{
+	return facesNormals_;
+}
+
+std::vector<glm::vec3> MeshModel::getVerticesNormals()
+{
+	return verticesNormals_;
+}
+
+std::vector<glm::vec3> MeshModel::getFacesCenters()
+{
+	return facesCenters_;
 }
 
 glm::vec3 MeshModel::getScale()
@@ -139,7 +162,7 @@ void MeshModel:: setMinMaxVertices() {
 	float maxZ = FLT_MIN;
 
 	for (int i = 0; i <= vertices_.size() - 1; i++) {
-		glm::fvec3 vertic = vertices_[i];
+		glm::fvec3 vertic = vertices_.at(i);
 		float x = vertic[0];
 		float y = vertic[1];
 		float z = vertic[2];
@@ -175,6 +198,69 @@ void MeshModel:: setMinMaxVertices() {
 
 }
 
+void MeshModel::setVerteciesNormals()
+{
+	verticesNormals_.clear();
+	int verticesCount = vertices_.capacity();
+	int faceCount = faces_.capacity();
+
+	int* verticesNormalCount	= new int[verticesCount];
+	glm::vec3* verticesSum		= new glm::vec3[verticesCount];
+
+	//initialisation of arrays;
+	for (int j = 0; j < verticesCount; j++)
+	{
+		verticesNormalCount[j]	= 0;
+		verticesSum[j]		= glm::vec3(0,0,0);
+	}
+
+	//loop over all faces
+	for (int j = 0; j < faceCount; j++)
+	{
+		Face& face = faces_.at(j);
+
+		for (int k = 0; k < 3; k++) {
+			int index = face.GetVertexIndex(k) - 1;
+			verticesNormalCount[index]++;
+		}
+
+		glm::vec3 normal = face.getFaceNormal();
+
+
+		// add face normals to all three vertices in face
+		for (int k = 0; k < 3; k++) {
+			int index = face.GetVertexIndex(k) - 1;
+			verticesSum[index] += normal;
+		}
+
+	}
+
+
+	// calculate vertices normals ; we take the sum of all adjesent face normals of vertex and we  devide by the number of
+	// faces
+	for (int j = 0; j < verticesCount; j++)
+	{
+		float x = verticesSum[j][0];
+		float y = verticesSum[j][1]; 
+		float z = verticesSum[j][2];
+
+		if (verticesNormalCount != 0) {
+
+			x /= verticesNormalCount[j];
+			y /= verticesNormalCount[j];
+			z /= verticesNormalCount[j];
+
+			//add to vertex normal to  mesh model
+			verticesNormals_.push_back(glm::vec3(x, y, z));
+		}
+	}
+
+	delete[] verticesNormalCount;
+	delete[] verticesSum;
+}
+
+
+
 void MeshModel::setObjectTransformationUpdates(const glm::vec3 nScale, const glm::vec3 nRotate, const glm::vec3 nTrasnlate)
 {
 	scale = nScale;
@@ -184,11 +270,11 @@ void MeshModel::setObjectTransformationUpdates(const glm::vec3 nScale, const glm
 	glm::fmat4x4 id = Utils::getIdMat();
 	glm::fmat4x4 scale = Utils::TransformationScale(getScale());
 	glm::fmat4x4 translate = Utils::TransformationTransition(getTranslate());
-	glm::fmat4x4 rotateX = Utils::TransformationRotateX(Utils::degrees2Radians(getRotate()[0]));
-	glm::fmat4x4 rotateY = Utils::TransformationRotateY(Utils::degrees2Radians(getRotate()[1]));
-	glm::fmat4x4 rotateZ = Utils::TransformationRotateZ(Utils::degrees2Radians(getRotate()[2]));
+	glm::fmat4x4 rotateX = Utils::TransformationRotateX(glm::radians(getRotate()[0]));
+	glm::fmat4x4 rotateY = Utils::TransformationRotateY(glm::radians(getRotate()[1]));
+	glm::fmat4x4 rotateZ = Utils::TransformationRotateZ(glm::radians(getRotate()[2]));
 
-	setObjectTransformation(translate * scale * rotateZ * rotateY * rotateX * id);
+	setObjectTransformation(translate * scale * rotateZ * rotateY * rotateX );
 }
 
 void MeshModel::setWorldTransformationUpdates(const glm::vec3 nScale, const glm::vec3 nRotate, const glm::vec3 nTrasnlate)
@@ -197,14 +283,16 @@ void MeshModel::setWorldTransformationUpdates(const glm::vec3 nScale, const glm:
 	WorldRotate = nRotate;
 	WorldTranslate = nTrasnlate;
 
+	
 	glm::fmat4x4 id = Utils::getIdMat();
 	glm::fmat4x4 scale = Utils::TransformationScale(getWorldScale());
 	glm::fmat4x4 translate = Utils::TransformationTransition(getWorldTranslate());
-	glm::fmat4x4 rotateX = Utils::TransformationRotateX(Utils::degrees2Radians(getWorldRotate()[0]));
-	glm::fmat4x4 rotateY = Utils::TransformationRotateY(Utils::degrees2Radians(getWorldRotate()[1]));
-	glm::fmat4x4 rotateZ = Utils::TransformationRotateZ(Utils::degrees2Radians(getWorldRotate()[2]));
+	glm::fmat4x4 rotateX = Utils::TransformationRotateX(glm::radians(getWorldRotate()[0]));
+	glm::fmat4x4 rotateY = Utils::TransformationRotateY(glm::radians(getWorldRotate()[1]));
+	glm::fmat4x4 rotateZ = Utils::TransformationRotateZ(glm::radians(getWorldRotate()[2]));
 
-	setWorldTransformation(translate * scale * rotateZ * rotateY * rotateX * id);
+	//setWorldTransformation(translate * scale * rotateZ * rotateY * rotateX );
+	setWorldTransformation(glm::inverse(translate) * glm::inverse(scale) * glm::inverse(rotateZ) * glm::inverse(rotateY) * glm::inverse(rotateX));
 }
 
 void MeshModel::setObjectTransformation(const glm::fmat4x4 transform = Utils::getIdMat())
@@ -270,21 +358,21 @@ float MeshModel::getMaxDitancePoints()
 
 }
 
-void MeshModel::getMiddleOfModel()
+
+void MeshModel::setModelInMiddle()
 {
-	
+	setMinMaxVertices();
 
 	float deltaX = -((minX_ + maxX_) / 2);
 	float deltaY = -((minY_ + maxY_) / 2);
 	float deltaZ = -((minZ_ + maxZ_) / 2);
 	glm::vec3 middled = glm::vec3(deltaX, deltaY, deltaZ);
+
+
+	//center verices and verices normla
 	for (int i = 0; i <= vertices_.size() - 1; i++) {
 		vertices_[i] += middled;
 	}
-	for (int i = 0; i <= normals_.size() - 1; i++) {
-		normals_[i] += middled;
-	}
-
 }
 
 

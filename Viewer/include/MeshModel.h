@@ -2,7 +2,7 @@
 #include <glm/glm.hpp>
 #include <string>
 #include "Face.h"
-
+#include <map>
 
 class MeshModel
 {
@@ -16,9 +16,12 @@ public:
 	const glm::vec3& GetVertexAtIndex(int i) const;
 
 	
-
+	void setFaceNormal(int index, const glm::fvec3 normal);
 	std::vector<Face> getFaces() const;
 	void outputFacesAndVertices();
+	std::vector<glm::vec3> getFacesNormals();
+	std::vector<glm::vec3> getFacesCenters();
+	std::vector<glm::vec3> getVerticesNormals();
 
 	glm::vec3 getScale();
 	glm::vec3 getRotate();
@@ -32,8 +35,10 @@ public:
 
 
 	float getMaxDitancePoints();
-	void getMiddleOfModel();
+
+	void setModelInMiddle();
 	void setMinMaxVertices();
+	void setVerteciesNormals();
 
 	void setObjectTransformationUpdates(const glm::vec3 nScale, const glm::vec3 nRotate, const glm::vec3 nTrasnlate);
 	void setWorldTransformationUpdates(const glm::vec3 nScale, const glm::vec3 nRotate, const glm::vec3 nTrasnlate);
@@ -51,8 +56,18 @@ public:
 
 	bool displayBoundingBox = false;
 	bool displayFaceNormals = false;
+	bool displayVerticesNormals = false;
 
-private:
+	float minX_ = FLT_MAX;
+	float minY_ = FLT_MAX;
+	float minZ_ = FLT_MAX;
+	float maxX_ = FLT_MIN;
+	float maxY_ = FLT_MIN;
+	float maxZ_ = FLT_MIN;
+
+	std::map<int, std::vector<int>> vertcisAdjacent;
+
+protected:
 	
 	glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f);
 	glm::vec3 Rotate = glm::vec3(0, 0, 0);
@@ -70,12 +85,12 @@ private:
 	std::vector<glm::vec3> normals_;
 	std::string model_name_;
 
-	float minX_ = FLT_MAX;
-	float minY_ = FLT_MAX;
-	float minZ_ = FLT_MAX;
-	float maxX_ = FLT_MIN;
-	float maxY_ = FLT_MIN;
-	float maxZ_ = FLT_MIN;
+
+	std::vector<glm::vec3> verticesNormals_;
+	std::vector<glm::vec3> facesNormals_;
+	std::vector<glm::vec3> facesCenters_;
+	
+	
 	
 
 	std::vector<glm::vec3> verticesNormals_;
