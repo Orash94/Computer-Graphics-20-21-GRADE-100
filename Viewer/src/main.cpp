@@ -380,12 +380,17 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 					worldTranslate = glm::vec3(0.0f, 0.0f, 0.0f);
 				}
 			}
-			//ImGui::SliderFloat3("Rotate		[x,y,z]", Rotate, 0.0f, 359.9f);
-			//ImGui::SliderFloat3("Translate	[x,y,z]", Translate, 0.0f, 1.0f);
-			model1.setWorldTransformationUpdates(worldScale, worldRotate, worldTranslate);
-			ImGui::TreePop();
-		}
-		ImGui::Checkbox("Display Bounding Box", &model1.displayBoundingBox);
+			if (ImGui::TreeNode("model color selection:")) {
+				glm::vec3 currMeshColor = model1.GetColor();
+				float Color[3] = { currMeshColor[0], currMeshColor[1],currMeshColor[2] };
+				ImGui::ColorEdit3("choose color", (float*)&Color);
+
+				for (int i = 0; i < 3; i++) {
+					currMeshColor[i] = Color[i];
+				}
+				model1.SetColor(currMeshColor);
+			}
+			ImGui::Checkbox("Display Bounding Box", &model1.displayBoundingBox);
 
 		ImGui::Checkbox("Display Face Normals", &model1.displayFaceNormals);
 
