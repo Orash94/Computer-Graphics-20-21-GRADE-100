@@ -72,11 +72,15 @@ We interpolate nomrals of the three vertices constructing the face,and then we c
 
 ## Demonstration
 
-### Art
+### What's Up, Doc?
 
 <img src="./pictures/Zoom_cCk0QaQs1j.png" width="400"> <img src="./pictures/b44668f04dc693785f64bbefd08d_Gallery.jpg" width="400">
 
 Phantom of the opera ? more like bugs bunny of the opera , we have diffuse light with ambient light with the combination of the white light to  give you this masterpiece. 
+
+
+
+### It's Over 9000!
 
 <img src="./pictures/‏‏furious beethoven.png" width="400"> <img src="./pictures/1584452342_Dragon-Ball-Z-Kakarot-will-receive-Goku-and-Vegeta-Super-1024x576.jpg" width="400">
 
@@ -84,7 +88,33 @@ Phantom of the opera ? more like bugs bunny of the opera , we have diffuse light
 
 Super Saiyan  God Beethoven evolves into Pikachu . we used specular with diffuse and a little spice of ambient for Beethoven  and for the bananas we used only diffuse and ambient light because banana is not specular although its spectacular .
 
-#### Multiple lights sources
+### Power of a million faces
+
+<img src="./pictures/WhatsApp Image 2021-01-12 at 19.22.13.jpeg" width="400">
+
+specular and diffuse light used to display this monster of computation complexity.
+
+
+
+### Simple is beautiful
+
+<img src="./pictures/WhatsApp Image 2021-01-12 at 19.35.04.jpeg" width="400"> <img src="./pictures/WhatsApp Image 2021-01-12 at 19.35.20.jpeg" width="400">
+
+specular and diffuse light used, when you just want a cup of tea but there is only tea and no cup.
+
+### Animals at the disco 
+
+<img src="./pictures/WhatsApp Image 2021-01-12 at 19.51.58.jpeg" width="400"> <img src="./pictures/WhatsApp Image 2021-01-12 at 19.57.41.jpeg" width="400">
+
+background color change with diffuse and specular light, sphere and cow is in flat shading, dolphin is in Gouraud shading and bunny is in phong shading, on the right we have fog effect. Time to boogie like its 1969. 
+
+### Beethoven new mix cover art
+
+<img src="./pictures/WhatsApp Image 2021-01-12 at 21.09.26.jpeg" width="400"> <img src="./pictures/WhatsApp Image 2021-01-12 at 21.10.52.jpeg" width="400">
+
+diffuse lighting with background color change, we can see Beethoven behind the scenes getting ready to drop his new sick mixtape, Symphony No. 10, soon available on Spotify and Apple music,  get your copy soon.  
+
+### Multiple lights sources
 
 <img src="./pictures/Zoom_pEusxGkyKP.png" width="400"><img src="./pictures/WhatsApp Image 2021-01-10 at 15.03.57.jpeg" width="400"> 
 
