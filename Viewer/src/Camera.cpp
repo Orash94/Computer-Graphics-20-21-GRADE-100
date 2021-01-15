@@ -76,9 +76,9 @@ void Camera::SetPerspectiveData(const float near_, const float far_, const float
 
 	/*float height = glm::abs(glm::tan(fovy/zoom)) * _near;
 	float width = aspectRatio * height;*/
-
+	float nfovy = fovy / (zoom);
 	//(T fov, T width, T height, T zNear, T zFar)
-	view_transformation_ = glm::perspective(fovy, aspectRatio , _near, _far);
+	view_transformation_ = glm::perspective(nfovy, aspectRatio , _near, _far);
 	//view_transformation_ = glm::frustum(left, right, bottom, top, _near, _far);
 	//view_trview_transformation_ =ansformation_ = Utils::SetViewVolumePerspectiveTransformation(left, right, top, bottom, near_, far_);
 }

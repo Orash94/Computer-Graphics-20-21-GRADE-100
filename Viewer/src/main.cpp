@@ -623,7 +623,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 							ImGui::SliderFloat(" :Far ", &nFar, 10.0f, 2500.0f);
 							ImGui::SliderFloat(":Angle of Field of View Y ", &nFovy,0.001f, 3.14f);
 							ImGui::SliderFloat(" :Width", &nAspectRatio, 0.1f, 100.0f);
-							ImGui::SliderFloat("Zoom: ", &nZoom, 1.0f, 1000000.0f);
+							ImGui::SliderFloat("Zoom: ", &nZoom, 1.0f, 2.0f);
 							ImGui::SliderFloat("Zmin: ", &cam.ZMinPerspective, 0.00001f, 2.0f);
 							cam.SetZoom(nZoom);
 							cam.SetPerspectiveData(nNear, nFar, nFovy, nAspectRatio);
