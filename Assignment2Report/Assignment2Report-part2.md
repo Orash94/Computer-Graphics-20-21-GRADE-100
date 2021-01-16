@@ -72,14 +72,6 @@ We interpolate nomrals of the three vertices constructing the face,and then we c
 
 ## Demonstration
 
-### What's Up, Doc?
-
-<img src="./pictures/Zoom_cCk0QaQs1j.png" width="400"> <img src="./pictures/b44668f04dc693785f64bbefd08d_Gallery.jpg" width="400">
-
-Phantom of the opera ? more like bugs bunny of the opera , we have diffuse light with ambient light with the combination of the white light to  give you this masterpiece. 
-
-
-
 ### It's Over 9000!
 
 <img src="./pictures/‏‏furious beethoven.png" width="400"> <img src="./pictures/1584452342_Dragon-Ball-Z-Kakarot-will-receive-Goku-and-Vegeta-Super-1024x576.jpg" width="400">
@@ -114,7 +106,15 @@ background color change with diffuse and specular light, sphere and cow is in fl
 
 diffuse lighting with background color change, we can see Beethoven behind the scenes getting ready to drop his new sick mixtape, Symphony No. 10, soon available on Spotify and Apple music,  get your copy soon.  
 
-### Multiple lights sources
+### Someday I'm gonna be a real boy`
+
+<img src="./pictures/WhatsApp Image 2021-01-16 at 22.54.29.jpeg" width="800">
+
+diffuse,speculate  ambient , texture , everything you want...
+
+He sees you when you're sleeping,He knows when you're awake,He knows if you've been bad or good,So be good for goodness sake! 
+
+### Multiple lights source
 
 <img src="./pictures/Zoom_pEusxGkyKP.png" width="400"><img src="./pictures/WhatsApp Image 2021-01-10 at 15.03.57.jpeg" width="400"> 
 
@@ -159,3 +159,9 @@ Users can choose density of the fog.
 <img src="./pictures/proceduralTexture .png" width="400">
 
 We give the user the option to choose the intensity factor for the procedural textures.
+
+
+
+
+
+## Thanks for watching folks and good night
