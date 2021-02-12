@@ -27,6 +27,7 @@ std::shared_ptr<MeshModel> Utils::LoadMeshModel(const std::string& filePath)
 	std::vector<Face> faces;
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;
+	std::vector<glm::vec2> textureCoords;
 	std::ifstream ifile(filePath.c_str());
 
 	// while not end of file
@@ -53,7 +54,7 @@ std::shared_ptr<MeshModel> Utils::LoadMeshModel(const std::string& filePath)
 		}
 		else if (lineType == "vt")
 		{
-			// TODO: Handle texture coordinates
+			textureCoords.push_back(Utils::Vec2fFromStream(issLine));
 		}
 		else if (lineType == "f")
 		{
@@ -69,7 +70,7 @@ std::shared_ptr<MeshModel> Utils::LoadMeshModel(const std::string& filePath)
 		}
 	}
 
-	return std::make_shared<MeshModel>(faces, vertices, normals, Utils::GetFileName(filePath));
+	return std::make_shared<MeshModel>(faces, vertices, normals, textureCoords, Utils::GetFileName(filePath));
 }
 
 std::string Utils::GetFileName(const std::string& filePath)

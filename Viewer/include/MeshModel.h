@@ -1,8 +1,18 @@
 #pragma once
 #include <glm/glm.hpp>
+#include <glad/glad.h>
 #include <string>
 #include "Face.h"
 #include <map>
+
+
+struct Vertex
+{
+	glm::vec3 position;
+	glm::vec3 normal;
+	glm::vec2 textureCoords;
+};
+
 
 class MeshModel
 {
@@ -10,7 +20,7 @@ public:
 	static enum shadingType { Flat, Gauraud, Phong, None };
 	static enum modelType { Object, Camera, Light};
 
-	MeshModel(std::vector<Face> faces, std::vector<glm::vec3> vertices, std::vector<glm::vec3> normals, const std::string& model_name);
+	MeshModel(std::vector<Face> faces, std::vector<glm::vec3> vertices, std::vector<glm::vec3> normals, std::vector<glm::vec2> textureCoords , const std::string& model_name);
 	virtual ~MeshModel();
 	const Face& GetFace(int index) const;
 	int GetFacesCount() const;
@@ -59,6 +69,8 @@ public:
 	glm::fmat4x4 getNormalTransformation() const;
 
 
+	GLuint getVBO() const;
+	GLuint getVAO() const;
 
 	bool displayBoundingBox = false;
 
@@ -93,7 +105,8 @@ public:
 
 	
 protected:
-	
+	GLuint vbo;
+	GLuint vao;
 	glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f);
 	glm::vec3 Rotate = glm::vec3(0, 0, 0);
 	glm::vec3 Translate = glm::vec3(0, 0, 0);
@@ -118,6 +131,7 @@ protected:
 	
 	glm::vec3 color;
 	
+	std::vector<Vertex> modelVertices;
 
 	glm::vec3 center;
 	glm::fmat3x3 CoordinateSystem;
