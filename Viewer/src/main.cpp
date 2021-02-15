@@ -9,6 +9,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
+#include "InitShader.h"
 #include "Renderer.h"
 #include "Scene.h"
 #include "Utils.h"
@@ -39,7 +40,8 @@ std::shared_ptr<Camera> MakeCamera();
 std::shared_ptr<Camera> MakeDefaultCamera();
 std::shared_ptr<Light> MakePointLight();
 std::shared_ptr<Light> MakeParallelLight();
-void normalizeColors(Renderer render);
+
+
 void testing();
 /**
  * Function implementation
@@ -62,29 +64,50 @@ int main(int argc, char **argv)
 	glfwGetFramebufferSize(window, &frameBufferWidth, &frameBufferHeight);
 
 	Scene scene = Scene();
-
 	//setting up default camera
 	scene.AddCamera(MakeDefaultCamera());
 	scene.SetActiveCameraIndex(0);
 
-	Renderer renderer = Renderer(frameBufferWidth, frameBufferHeight ,scene);
 
+
+	Renderer renderer = Renderer(frameBufferWidth, frameBufferHeight ,scene);
+	renderer.loadShaders();
 	
 	
 	ImGuiIO& io = SetupDearImgui(window);
 	glfwSetScrollCallback(window, ScrollCallback);
-	
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+
+
     while (!glfwWindowShouldClose(window))
     {
-		//Main Loop
-        glfwPollEvents();
-		StartFrame();
+		// Poll and process events
+		glfwPollEvents();
+
+		// Imgui stuff
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
 		DrawImguiMenus(io, scene);
-		RenderFrame(window, scene, renderer, io);
+		ImGui::Render();
+
+
+		// Clear the screen and depth buffer
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// Render scene
+		renderer.Render(scene);
+
+		// Imgui stuff
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		// Swap front and back buffers
+		glfwSwapBuffers(window);
     }
 
 	Cleanup(window);
-    return 0;
+	return 0;
 }
 
 static void GlfwErrorCallback(int error, const char* description)
@@ -167,9 +190,9 @@ void RenderFrame(GLFWwindow* window, Scene& scene, Renderer& renderer, ImGuiIO& 
 			// Left mouse button is down
 		}
 	}
-	renderer.ClearColorBuffer(scene.backgroundColor);
+	//renderer.ClearColorBuffer(scene.backgroundColor);
 	renderer.Render(scene);
-	renderer.SwapBuffers();
+	//renderer.SwapBuffers();
 
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	glfwMakeContextCurrent(window);
@@ -364,7 +387,9 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 			{
 				ImGui::Checkbox("WireFram", &scene.wireFrame);
 				ImGui::ColorEdit3("background color", (float*)&scene.backgroundColor);
+				
 				if (ImGui::Button("Reset color")) {
+					
 					scene.backgroundColor = glm::fvec3(0.8f, 0.8f, 0.8f);
 				}
 				if (ImGui::CollapsingHeader("Post Proccessing ", ImGuiTreeNodeFlags_None))
@@ -781,9 +806,9 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 						}
 						if (ImGui::CollapsingHeader("Translating", ImGuiTreeNodeFlags_None))
 						{
-							ImGui::SliderFloat("Translate X", &Translate[0], -windowsWidth, windowsWidth);
-							ImGui::SliderFloat("Translate Y", &Translate[1], -windowsHeight, windowsHeight);
-							ImGui::SliderFloat("Translate Z", &Translate[2], -maxWindow, maxWindow);
+							ImGui::SliderFloat("Translate X", &Translate[0], -1, 1);
+							ImGui::SliderFloat("Translate Y", &Translate[1], -1, 1);
+							ImGui::SliderFloat("Translate Z", &Translate[2], -1, 1);
 							if (ImGui::Button("Reset trasnalte")) {
 								Translate = glm::vec3(0.0f, 0.0f, 0.0f);
 							}
@@ -831,9 +856,9 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 						}
 						if (ImGui::CollapsingHeader("Translating", ImGuiTreeNodeFlags_None))
 						{
-							ImGui::SliderFloat("Translate X", &worldTranslate[0], -windowsWidth, windowsWidth);
-							ImGui::SliderFloat("Translate Y", &worldTranslate[1], -windowsHeight, windowsHeight);
-							ImGui::SliderFloat("Translate Z", &worldTranslate[2], -maxWindow, maxWindow);
+							ImGui::SliderFloat("Translate X", &worldTranslate[0], -1, 1);
+							ImGui::SliderFloat("Translate Y", &worldTranslate[1], -1, 1);
+							ImGui::SliderFloat("Translate Z", &worldTranslate[2], -1, 1);
 							if (ImGui::Button("Reset Translating")) {
 								worldTranslate = glm::vec3(0.0f, 0.0f, 0.0f);
 							}
@@ -977,9 +1002,9 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 
 						if (ImGui::CollapsingHeader("Translating", ImGuiTreeNodeFlags_None))
 						{
-							ImGui::SliderFloat("Translate X", &Translate[0], -windowsWidth, windowsWidth);
-							ImGui::SliderFloat("Translate Y", &Translate[1], -windowsHeight, windowsHeight);
-							ImGui::SliderFloat("Translate Z", &Translate[2], -maxWindow, maxWindow);
+							ImGui::SliderFloat("Translate X", &Translate[0], -1, 1);
+							ImGui::SliderFloat("Translate Y", &Translate[1], -1, 1);
+							ImGui::SliderFloat("Translate Z", &Translate[2], -1, 1);
 							if (ImGui::Button("Reset trasnalte")) {
 								Translate = glm::vec3(0.0f, 0.0f, 0.0f);
 							}
@@ -1009,9 +1034,9 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 
 						if (ImGui::CollapsingHeader("Translating", ImGuiTreeNodeFlags_None))
 						{
-							ImGui::SliderFloat("Translate X", &worldTranslate[0], -windowsWidth, windowsWidth);
-							ImGui::SliderFloat("Translate Y", &worldTranslate[1], -windowsHeight, windowsHeight);
-							ImGui::SliderFloat("Translate Z", &worldTranslate[2], -maxWindow, maxWindow);
+							ImGui::SliderFloat("Translate X", &worldTranslate[0], -1, 1);
+							ImGui::SliderFloat("Translate Y", &worldTranslate[1], -1, 1);
+							ImGui::SliderFloat("Translate Z", &worldTranslate[2], -1 , 1);
 							if (ImGui::Button("Reset trasnalte")) {
 								worldTranslate = glm::vec3(0.0f, 0.0f, 0.0f);
 							}

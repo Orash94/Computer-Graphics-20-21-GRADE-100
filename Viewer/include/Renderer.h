@@ -1,6 +1,6 @@
 #pragma once
 #include "Scene.h"
-
+#include "ShaderProgram.h"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 
@@ -20,6 +20,7 @@ public:
 	void applyLinearFogging();
 	void applyExponentialFogging();
 	void applyExponentialSquaredFogging();
+	void loadShaders();
 	Scene& scene;
 
 	
@@ -61,4 +62,7 @@ private:
 	glm::vec3** localColorBuffer;
 	GLuint gl_screen_tex_;
 	GLuint gl_screen_vtc_;
+
+
+	ShaderProgram colorShader;
 };

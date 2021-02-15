@@ -32,40 +32,23 @@ MeshModel::MeshModel(std::vector<Face> faces, std::vector<glm::vec3> vertices, s
 			int vertexIndex = currentFace.GetVertexIndex(j) - 1;
 
 			Vertex vertex;
-			vertex.position = vertices[vertexIndex];
-			vertex.normal = normals[vertexIndex];
+			vertex.position = vertices_[vertexIndex];
+
+			int vertexNormalIndex = currentFace.GetNormalIndex(j) -1;
+			vertex.normal = normals[vertexNormalIndex];
 
 			if (textureCoords.size() > 0)
 			{
 				int textureCoordsIndex = currentFace.GetTextureIndex(j) - 1;
 				vertex.textureCoords = textureCoords[textureCoordsIndex];
 			}
+			else {
+				vertex.textureCoords = glm::vec2(0, 0);
+			}
 
 			modelVertices.push_back(vertex);
 		}
 	}
-
-	glGenVertexArrays(1, &vao);
-	glGenBuffers(1, &vbo);
-
-	glBindVertexArray(vao);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, modelVertices.size() * sizeof(Vertex), &modelVertices[0], GL_STATIC_DRAW);
-
-	// Vertex Positions
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
-
-	// Normals attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
-
-	// Vertex Texture Coords
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(6 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(2);
-
-	// unbind to make sure other code does not change it somewhere else
-	glBindVertexArray(0);
 }
 
 MeshModel::~MeshModel()
@@ -413,6 +396,11 @@ GLuint MeshModel::getVBO() const
 GLuint MeshModel::getVAO() const
 {
 	return vao;
+}
+
+std::vector<Vertex> MeshModel::getVertexes() const
+{
+	return modelVertices;
 }
 
 

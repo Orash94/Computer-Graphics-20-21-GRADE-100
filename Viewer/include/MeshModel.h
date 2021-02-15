@@ -71,6 +71,8 @@ public:
 
 	GLuint getVBO() const;
 	GLuint getVAO() const;
+	std::vector<Vertex> getVertexes() const;
+
 
 	bool displayBoundingBox = false;
 
