@@ -1177,18 +1177,18 @@ void Renderer::Render(const Scene& scene)
 		currentModel.normalTransformation = finalTransformation;
 
 		//forth we do a viewport Transformation to fit the screen
-		finalTransformation = translate * AfterProjection * finalTransformation;
+		//finalTransformation = translate * AfterProjection * finalTransformation;
 
 
 
 
-		tmpTransformation = modelTransformation * scale;
+		tmpTransformation = inverserCameraTransformation * modelTransformation * scale;
 
 		glm::vec3 fsEye = Utils::applyTransformationToVector(scene.GetActiveCamera().getEye(), tmpTransformation);
 		colorShader.setUniform("eye",fsEye);
 		colorShader.setUniform("SceneAmbient", ambientScene);
 		colorShader.setUniform("finalTransformation", tmpTransformation);
-		colorShader.setUniform("normalTransformation", normalMatrix);
+		colorShader.setUniform("normalTransformation", tmpTransformation);
 		colorShader.setUniform("modelColor", glm::vec4(currentModel.GetColor(), 1.0f));
 		colorShader.setUniform("material.AmbientColor", glm::vec4(currentModel.ambientColor,1.0f));
 		colorShader.setUniform("material.DiffuseColor", glm::vec4(currentModel.diffuseColor, 1.0));

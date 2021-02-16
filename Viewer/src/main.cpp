@@ -232,7 +232,7 @@ std::shared_ptr<Camera> MakeCamera() {
 std::shared_ptr<Camera> MakeDefaultCamera()
 {
 	MeshModel mesh = MeshModel(*(Utils::LoadMeshModel("../computergraphics2021-or-and-abed/Data/camera.obj")));
-	glm::vec3 nEye = glm::vec3(0, 0, 0);
+	glm::vec3 nEye = glm::vec3(0, 0, 1);
 	glm::vec3 nAt = glm::vec3(0, 0, -1);
 	glm::vec3 nUp = glm::vec3(0, 1, 0);
 	auto cam = std::make_shared<Camera>(mesh, nEye, nAt, nUp);

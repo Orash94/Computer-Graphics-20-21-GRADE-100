@@ -8,11 +8,11 @@ Camera::Camera(MeshModel& mesh, glm::vec3& eye_, glm::vec3& at_, glm::vec3& up_)
 	up = up_;
 
 	
-	left = -500.f;
-	right = 500.f;
+	left = -1;
+	right = 1;
 
-	bottom = -500.f;
-	top = 500.f;
+	bottom = -1;
+	top = 1;
 	
 	_near = 0.1f;
 	Pnear = 250.0f;
