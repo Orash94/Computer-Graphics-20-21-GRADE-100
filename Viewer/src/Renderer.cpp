@@ -1110,10 +1110,10 @@ void Renderer::Render(const Scene& scene)
 
 	// updating camera params;
 	Camera& cam = scene.GetActiveCamera();
-	cam.right = (float)centerX;
-	cam.left = -(float)centerX;
-	cam.top = (float)centerY;
-	cam.bottom = -(float)centerY;
+	cam.right = (float)1;
+	cam.left = -(float)-1;
+	cam.top = (float)1;
+	cam.bottom = -(float)1;
 	cam.aspectRatio = windowsWidth / windowsHeight;
 	if (cam.GetOrthographicOrPerspective()) {
 		cam.SetViewVolumeCoordinates(cam.right, cam.left, cam.top, cam.bottom, cam.GetNear(), cam.GetFar());
