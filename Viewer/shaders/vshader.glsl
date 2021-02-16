@@ -5,9 +5,9 @@ layout(location = 1) in vec3 normal;
 //layout(location = 2) in vec2 texCoords;
 
 // The model/view/projection matrices
-//uniform mat4 model;	//inverse(modelWorldTransformation)*modelTransformation
-//uniform mat4 view;	// viewVolumeTransformation
-//uniform mat4 projection;	// AfterProjectTransforamtion * projectionTransformation
+uniform mat4 model;	//inverse(modelWorldTransformation)*modelTransformation
+uniform mat4 view;	// viewVolumeTransformation
+uniform mat4 projection;	// AfterProjectTransforamtion * projectionTransformation
 
 uniform mat4 finalTransformation;
 uniform mat4 normalTransformation;

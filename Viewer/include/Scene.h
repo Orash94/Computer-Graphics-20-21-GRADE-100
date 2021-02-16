@@ -47,7 +47,6 @@ public:
 	bool getShowAxis() const ;
 
 	void setShowAxis(bool show);
-	bool showAxis;
 
 	void deleteActiveCamera();
 	void deleteActiveModel();

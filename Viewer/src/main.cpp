@@ -65,11 +65,13 @@ int main(int argc, char **argv)
 	glfwMakeContextCurrent(window);
 	glfwGetFramebufferSize(window, &frameBufferWidth, &frameBufferHeight);
 
+	glViewport(0,0,1000,1000);
+
 	Scene scene = Scene();
 	//setting up default camera
 	scene.AddCamera(MakeDefaultCamera());
 	scene.SetActiveCameraIndex(0);
-
+	
 
 
 	Renderer renderer = Renderer(frameBufferWidth, frameBufferHeight ,scene);
@@ -97,6 +99,7 @@ int main(int argc, char **argv)
 
 
 		// Clear the screen and depth buffer
+		glClearColor(scene.backgroundColor[0], scene.backgroundColor[1], scene.backgroundColor[2], 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Render scene
@@ -161,6 +164,8 @@ void StartFrame()
 
 void RenderFrame(GLFWwindow* window, Scene& scene, Renderer& renderer, ImGuiIO& io)
 {
+	
+
 	ImGui::Render();
 	int frameBufferWidth, frameBufferHeight;
 	glfwMakeContextCurrent(window);
@@ -172,11 +177,8 @@ void RenderFrame(GLFWwindow* window, Scene& scene, Renderer& renderer, ImGuiIO& 
 		ChangeFrameSize(frameBufferWidth, frameBufferHeight, renderer);
 		scene.GetActiveCamera().aspectRatio = frameBufferWidth / frameBufferHeight;
 		//renderer.SetViewport(frameBufferWidth, frameBufferHeight);
-
 		
 	}
-
-
 
 	if (!io.WantCaptureKeyboard)
 	{
@@ -196,9 +198,8 @@ void RenderFrame(GLFWwindow* window, Scene& scene, Renderer& renderer, ImGuiIO& 
 			// Left mouse button is down
 		}
 	}
-	//renderer.ClearColorBuffer(scene.backgroundColor);
+
 	renderer.Render(scene);
-	//renderer.SwapBuffers();
 
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	glfwMakeContextCurrent(window);
@@ -381,7 +382,6 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 			light_selected = -1;
 		}
 	}
-	ImGui::Checkbox("Display Axis", &scene.showAxis);
 
 	ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
 
@@ -636,8 +636,8 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 							ImGui::SliderFloat(":Left ", &nLeft,  -1 , 0.0f);
 							ImGui::SliderFloat(" :Top ", &nTop, 0.0f, 1.0f);
 							ImGui::SliderFloat(" :Bottom", &nBottom, -1, 0.0f);
-							ImGui::SliderFloat(" :Near: ", &nNear , 1.0f, 20.f);
-							ImGui::SliderFloat(" :Far: ", &nFar, 5.0f, 2000.0f);
+							ImGui::SliderFloat(" :Near: ", &nNear ,0.1f, 0.1f);
+							ImGui::SliderFloat(" :Far: ", &nFar, 0.5, 2000.0f);
 
 							cam.SetViewVolumeCoordinates(nRight, nLeft, nTop, nBottom, nNear, nFar);
 					
@@ -648,10 +648,10 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 							nNear = cam.GetNear();
 							nFar = cam.GetFar();
 							nFovy = cam.GetFovy();
-							nAspectRatio = windowsWidth / windowHeight;
+							nAspectRatio = windowsWidth / windowsHeight;
 							nZoom = cam.GetZoom();
 
-							ImGui::SliderFloat(" :Near ", &nNear,0.1f, 400.0f);
+							ImGui::SliderFloat(" :Near ", &nNear,0.1f, 0.1f);
 							ImGui::SliderFloat(" :Far ", &nFar, 10.0f, 2500.0f);
 							ImGui::SliderFloat(":Angle of Field of View Y ", &nFovy,0.001f, 3.14f);
 							ImGui::SliderFloat(" :Width", &nAspectRatio, 0.1f, 100.0f);

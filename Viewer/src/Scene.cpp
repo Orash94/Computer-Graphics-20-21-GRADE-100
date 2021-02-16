@@ -9,8 +9,6 @@ Scene::Scene() :
 	active_model_index_(0),
 	CamOrWorldView(true)
 {
-
-	showAxis = true;
 }
 
 void Scene::AddModel(const std::shared_ptr<MeshModel>& mesh_model)
@@ -121,15 +119,6 @@ void Scene::cleanupScene()
 	Lights_.clear();
 }
 
-bool Scene::getShowAxis() const
-{
-	return showAxis;
-}
-
-void Scene::setShowAxis(bool show)
-{
-	showAxis = show;
-}
 
 void Scene::deleteActiveCamera()
 {

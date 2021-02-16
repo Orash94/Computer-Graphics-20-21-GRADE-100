@@ -22,7 +22,6 @@ MeshModel::MeshModel(std::vector<Face> faces, std::vector<glm::vec3> vertices, s
 	setModelInMiddle();
 	setFrame(glm::fvec3(0.0f, 0.0f, 0.0f), Utils::getIdMat());
 
-	//outputFacesAndVertices();
 	modelVertices.reserve(3 * faces.size());
 	for (int i = 0; i < faces.size(); i++)
 	{
@@ -50,14 +49,45 @@ MeshModel::MeshModel(std::vector<Face> faces, std::vector<glm::vec3> vertices, s
 		}
 	}
 
+
+	//dont know aht is this for
 	k1 = 0.5f;
 	k2 = 0.5f;
 	k3 = 0.5f;
 	k4 = 1.0f;
+
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+	glBufferData(GL_ARRAY_BUFFER, modelVertices.size() * sizeof(Vertex), &modelVertices[0], GL_STATIC_DRAW);
+
+	// Vertex Positions
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+
+	// Normals attribute
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
+
+	// texture attribute #TODO
+	/*glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(6 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);*/
+
+
+
+	// unbind
+	glBindVertexArray(0);
+
+
 }
 
 MeshModel::~MeshModel()
 {
+	glDeleteVertexArrays(1, &vao);
+	glDeleteBuffers(1, &vbo);
 }
 
 void MeshModel::SetColor(const glm::vec3 _color)

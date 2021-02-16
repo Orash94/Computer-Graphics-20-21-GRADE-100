@@ -1076,20 +1076,12 @@ void Renderer::ClearColorBuffer(const glm::vec3& color)
 
 void Renderer::Render(const Scene& scene)
 {
-
-	glClearColor(scene.backgroundColor[0], scene.backgroundColor[1], scene.backgroundColor[2], 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-
-	int windowsWidth = viewport_width_;
-	int windowsHeight = viewport_height_;
-
-	int centerX = windowsWidth / 2;
-	int centerY = windowsHeight / 2;
-
 	int lightCount = scene.GetLightCount();
 	glm::vec4 lightColors[10];
 	glm::vec4 lightPos[10];
+
+
+	//TODO figue out waht to do here
 	for (int i = 0; i < lightCount; ++i)
 	{
 		// setup lights
@@ -1108,30 +1100,9 @@ void Renderer::Render(const Scene& scene)
 		}
 	}
 
-	// updating camera params;
-	Camera& cam = scene.GetActiveCamera();
-	cam.right = (float)centerX;
-	cam.left = -(float)-centerX;
-	cam.top = (float)centerY;
-	cam.bottom = -(float)centerY;
-	cam.aspectRatio = windowsWidth / windowsHeight;
-	if (cam.GetOrthographicOrPerspective()) {
-		cam.SetViewVolumeCoordinates(cam.right, cam.left, cam.top, cam.bottom, cam.GetNear(), cam.GetFar());
-	}
-	else {
-		cam.SetPerspectiveData(cam.GetNear(), cam.GetFar(), cam.GetFovy(), cam.GetAspectRatio());
-	}
-
-	glm::fmat4x4 translateAfterProjection = Utils::TransformationTransition(glm::fvec3(1, 1, 0));
-	glm::fmat4x4 scaleAfterProjection = Utils::TransformationScale(glm::fvec3(centerX, centerY, 1));
-	glm::fmat4x4 AfterProjection = scaleAfterProjection * translateAfterProjection;
-	afterProjectionMatrix = AfterProjection;
-
 	
 
 	colorShader.use();
-	
-
 	
 	GLuint cur_vao;
 	GLuint cur_vbo;
@@ -1143,46 +1114,22 @@ void Renderer::Render(const Scene& scene)
 	int modelCount = scene.GetModelCount();
 	for (int currentModelIndex = 0; currentModelIndex < modelCount; currentModelIndex++)
 	{
-		glm::fmat4x4 tmpTransformation;
 		MeshModel& currentModel = scene.GetModel(currentModelIndex);
 
+		//scalling model to fit screen
 		float proportion = 0.5 / currentModel.getMaxDitancePoints();
-
-				
 		glm::fmat4x4 scale = Utils::TransformationScale(glm::fvec3(proportion, proportion, proportion));
-		glm::fmat4x4 translate = Utils::TransformationTransition(glm::fvec3(centerX, centerY, 0));
-
-		//first scaling the object to fit the screem
-		glm::fmat4x4 finalTransformation = scale; 
 
 		// second  multiplying with inverse(worldTransformation) * objectTransformation
 		glm::fmat4x4 modelTransformation = currentModel.getTransformation();
-		finalTransformation = modelTransformation * finalTransformation;
-
-		
 
 		//rendering active camera view
 		Camera& currentCam = scene.GetActiveCamera();
 		glm::fmat4x4 inverserCameraTransformation = glm::lookAt(currentCam.getEye(), currentCam.getAt(), currentCam.getUp());
 		glm::fmat4x4 viewVolumeTransformation= currentCam.GetViewTransformation();
-		glm::fmat4x4 CameraTransformation = viewVolumeTransformation * inverserCameraTransformation;
-
-		// third we get the camera transformation and multiply it with finalTransformation
-		finalTransformation = CameraTransformation * finalTransformation;  
-
-		// [1,-1] [1,-1] canonical representation of the model's projection
-		glm::mat4x4 normalMatrix = finalTransformation; 
-				
-
-		currentModel.normalTransformation = finalTransformation;
-
-		//forth we do a viewport Transformation to fit the screen
-		//finalTransformation = translate * AfterProjection * finalTransformation;
 
 
-
-
-		tmpTransformation = inverserCameraTransformation * modelTransformation * scale;
+		glm::fmat4x4 tmpTransformation = viewVolumeTransformation * inverserCameraTransformation * modelTransformation * scale;
 
 		glm::vec3 fsEye = Utils::applyTransformationToVector(scene.GetActiveCamera().getEye(), tmpTransformation);
 		colorShader.setUniform("eye",fsEye);
@@ -1200,255 +1147,15 @@ void Renderer::Render(const Scene& scene)
 
 		cur_vao = currentModel.getVAO();
 		cur_vbo = currentModel.getVBO();
-		glGenVertexArrays(1, &cur_vao);
-		glBindVertexArray(cur_vao);
-
-		glGenBuffers(1, &cur_vbo);
-		glBindBuffer(GL_ARRAY_BUFFER, cur_vbo);
-
-		glBufferData(GL_ARRAY_BUFFER, currentModel.getVertexes().size() * sizeof(Vertex), &currentModel.getVertexes()[0], GL_STATIC_DRAW);
-
-		// Vertex Positions
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
-		glEnableVertexAttribArray(0);
-
-		// Normals attribute
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(3 * sizeof(GLfloat)));
-		glEnableVertexAttribArray(1);
-
-		// texture attribute #TODO
-		/*glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(6 * sizeof(GLfloat)));
-		glEnableVertexAttribArray(2);*/
-
+		
 
 		// Drag our model's faces (triangles) in fill mode
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glBindVertexArray(cur_vao);
 		glDrawArrays(GL_TRIANGLES, 0, currentModel.getVertexes().size());
 		glBindVertexArray(0);
-		//glDeleteBuffers(1, &cur_vbo);
 	}
 
-	
-
-
-
-	
-
-
-	
-
-	
-	//if (scene.getShowAxis()) {
-	//	DrawLine(glm::fvec3(0, centerY, 0), glm::fvec3(windowsWidth, centerY, 0), glm::fvec3(0, 0, 0));
-	//	DrawLine(glm::fvec3(centerX, 0, 0), glm::fvec3(centerX, windowsHeight, 0), glm::fvec3(0, 0, 0));
-	//}
-	//
-
-
-
-
-	////rendering the MeshModels
-	//if (scene.GetModelCount() > 0) {
-	//	for (int i = 0; i < scene.GetModelCount(); i++)
-	//	{
-	//		MeshModel& mesh = scene.GetModel(i);
-	//		
-	//		//bounding box check
-
-	//		if (mesh.displayBoundingBox) {
-	//			DrawBoundingBox(mesh, scene, finalTransformation, glm::vec3(0, 0, 1));
-	//		}
-
-	//		std::vector<Face> faces = mesh.getFaces();
-
-	//		std::vector<glm::vec3> verticesTransformation;
-	//		for (int j = 0; j < mesh.GetVerticesCount(); j++)
-	//		{
-	//			glm::fvec3  vertex = mesh.GetVertexAtIndex(j);
-	//			glm::fvec3 transformedVertex = Utils::applyTransformationToVector(vertex, finalTransformation); 
-	//			verticesTransformation.push_back(transformedVertex);
-	//		}
-
-
-
-
-
-
-
-
-
-
-
-
-
-	//		
-	//		//draw faces
-	//		for (int j = 0; j < mesh.GetFacesCount(); j++)
-	//		{
-	//			Face& face = faces[j];
-
-	//			glm::vec3 vectorArray[3];
-
-	//			//extract verices of face
-	//			for (int k = 0; k < 3; k++) {
-	//				int index = face.GetVertexIndex(k) - 1;
-	//				vectorArray[k] = verticesTransformation[index];
-	//			}
-
-	//			
-	//			glm::fvec3  faceNormal = DrawFaceNormal(mesh ,face, normalMatrix, finalTransformation, glm::vec3(1, 0, 1));
-	//			mesh.setFaceNormal(j ,faceNormal);
-	//			
-	//			
-	//			if (scene.GetActiveCamera().GetOrthographicOrPerspective() == false) {
-	//				glm::vec3 triangleCenter = (vectorArray[0] + vectorArray[1] + vectorArray[2]) / 3.0f;
-	//				glm::vec3 at = scene.GetActiveCamera().getAt();
-	//				float zAt = at.z;
-	//				glm::vec3 camCenter = scene.GetActiveCamera().getCenter();
-	//				if ((camCenter[2] + zAt * triangleCenter[2]) < (camCenter.z + zAt * scene.GetActiveCamera().GetNear())) {
-	//					continue;
-	//				}
-	//			}
-	//			DrawTriangle(vectorArray[0], vectorArray[1], vectorArray[2], mesh.GetColor(), mesh , scene , face);
-	//		}
-
-	//		//call function 
-	//		mesh.setVerteciesNormals();
-
-	//		//vertices normals check
-	//		if (mesh.displayVerticesNormals) {
-	//			DrawVerticesNormal(mesh, finalTransformation, glm::vec3(0, 0, 0.545), mesh.VerticesNormalsLength);
-	//		}
-
-	//		//vertices normals per face check
-	//		if (mesh.displayVerticesNormalsPerFace) {
-	//			DrawVerticesNormalPerFace(mesh, finalTransformation, glm::vec3(0, 0.545, 0.545), mesh.VerticesNormalsPerFaceLength);
-	//		}
-	//	}
-
-	//}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	////rendering the  camers to the screen
-	//if (scene.GetCameraCount() > 0 ) {
-	//	for (int i = 0; i < scene.GetCameraCount(); i++) {
-
-	//		
-	//		Camera& tempCam = scene.GetCamera(i);
-	//		float proportion = 50.0f / tempCam.getMaxDitancePoints();
-
-	//		glm::fmat4x4 scale = Utils::TransformationScale(glm::fvec3(proportion, proportion, proportion));
-	//		glm::fmat4x4 translate = Utils::TransformationTransition(glm::fvec3(centerX, centerY, 0));
-
-	//		glm::fmat4x4 transformationMatrix;
-
-	//		//check if we are using LookAt or Transformation
-	//		if (tempCam.GetLookAtOrTransformation() == true) {
-	//			transformationMatrix = tempCam.getTransformation();
-	//		}
-	//		else {
-	//			transformationMatrix = glm::inverse(glm::lookAt(tempCam.getEye(), tempCam.getAt(), tempCam.getUp()));
-	//		}
-
-	//		glm::fmat4x4 finalTransformation =  transformationMatrix * scale;
-
-	//		
-
-	//		//rendering active camera view
-	//		Camera& currentCam = scene.GetActiveCamera();
-	//		glm::fmat4x4 inverserCameraTransformation = glm::lookAt(currentCam.getEye(), currentCam.getAt(), currentCam.getUp());
-	//		glm::fmat4x4 viewVolumeTransformation;
-	//		viewVolumeTransformation = currentCam.GetViewTransformation();
-	//		glm::fmat4x4 CameraTransformation = viewVolumeTransformation * inverserCameraTransformation;
-	//		finalTransformation =   CameraTransformation * finalTransformation;
-
-	//		tempCam.normalTransformation = finalTransformation;
-	//		finalTransformation = AfterProjection * finalTransformation;
-	//		tempCam.finalTransformation = finalTransformation;
-
-	//		
-	//		if (scene.GetActiveCameraIndex() == i) {
-	//			continue;
-	//		}
-	//		std::vector<Face> faces = tempCam.getFaces();
-
-	//		for (int j = 0; j < tempCam.GetFacesCount(); j++)
-	//		{
-	//			Face& face = faces[j];
-
-	//			glm::vec3 vectorArray[3];
-
-	//			for (int k = 0; k < 3; k++) {
-	//				int index = face.GetVertexIndex(k) - 1;
-	//				glm::vec3 v = tempCam.GetVertexAtIndex(index);
-	//				vectorArray[k] = Utils::applyTransformationToVector(v, finalTransformation);
-	//			}
-
-	//			DrawTriangle(vectorArray[0], vectorArray[1], vectorArray[2], glm::vec3(0.5f, 0.5f, 0.5f), tempCam, scene, face);
-
-	//		}
-	//	}
-	//}
-
-	////rendering the  lights to the screen
-	//if (scene.GetLightCount() > 0 ) {
-	//	for (int i = 0; i < scene.GetLightCount(); i++) {
-	//		Light& tempLight = scene.GetLight(i);
-	//		float proportion = 50.0f / tempLight.getMaxDitancePoints();
-
-	//		glm::fmat4x4 scale = Utils::TransformationScale(glm::fvec3(proportion, proportion, proportion));
-	//		glm::fmat4x4 translate = Utils::TransformationTransition(glm::fvec3(centerX, centerY, 0));
-
-	//		glm::fmat4x4 transformationMatrix = tempLight.getTransformation();
-
-	//		glm::fmat4x4 finalTransformation = transformationMatrix * scale;
-
-	//		if (scene.GetCamOrWorldView())  // rendering the active camera view
-	//		{
-	//			Camera& currentCam = scene.GetActiveCamera();
-	//			glm::fmat4x4 inverserCameraTransformation = glm::lookAt(currentCam.getEye(), currentCam.getAt(), currentCam.getUp());
-	//			glm::fmat4x4 viewVolumeTransformation;
-
-	//			viewVolumeTransformation = currentCam.GetViewTransformation();
-	//			glm::fmat4x4 CameraTransformation = viewVolumeTransformation * inverserCameraTransformation;
-	//			finalTransformation = CameraTransformation * finalTransformation;
-	//		}
-	//		tempLight.normalTransformation = finalTransformation;
-	//		finalTransformation = AfterProjection * finalTransformation;
-	//		tempLight.finalTransformation = finalTransformation;
-	//		
-	//		std::vector<Face> faces = tempLight.getFaces();
-
-	//		for (int j = 0; j < tempLight.GetFacesCount(); j++)
-	//		{
-	//			Face& face = faces[j];
-
-	//			glm::vec3 vectorArray[3];
-
-	//			for (int k = 0; k < 3; k++) {
-	//				int index = face.GetVertexIndex(k) - 1;
-	//				glm::vec3 v = tempLight.GetVertexAtIndex(index);
-	//				vectorArray[k] = Utils::applyTransformationToVector(v, finalTransformation);
-	//			}
-
-	//			DrawTriangle(vectorArray[0], vectorArray[1], vectorArray[2], glm::vec3(1, 1, 1) , tempLight, scene , face);
-
-	//		}
-	//	}
-	//}
 	//PostProcessing();
 	
 }
