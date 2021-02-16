@@ -174,9 +174,6 @@ void RenderFrame(GLFWwindow* window, Scene& scene, Renderer& renderer, ImGuiIO& 
 		//renderer.SetViewport(frameBufferWidth, frameBufferHeight);
 
 		
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glOrtho(0.0f, windowWidth, windowHeight, 0.0f, 0.0f, 1.0f);
 	}
 
 
