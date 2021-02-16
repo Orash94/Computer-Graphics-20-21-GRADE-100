@@ -9,6 +9,8 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
+
+#include "ShaderProgram.h"
 #include "InitShader.h"
 #include "Renderer.h"
 #include "Scene.h"
@@ -79,6 +81,7 @@ int main(int argc, char **argv)
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
+	 
 
     while (!glfwWindowShouldClose(window))
     {
@@ -167,7 +170,13 @@ void RenderFrame(GLFWwindow* window, Scene& scene, Renderer& renderer, ImGuiIO& 
 	{
 		// TODO: Set new aspect ratio
 		ChangeFrameSize(frameBufferWidth, frameBufferHeight, renderer);
+		scene.GetActiveCamera().aspectRatio = frameBufferWidth / frameBufferHeight;
 		//renderer.SetViewport(frameBufferWidth, frameBufferHeight);
+
+		
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glOrtho(0.0f, windowWidth, windowHeight, 0.0f, 0.0f, 1.0f);
 	}
 
 
@@ -207,7 +216,8 @@ void ChangeFrameSize(int width, int height, Renderer& renderer)
 
 	glViewport(0, 0, windowWidth, windowHeight);
 	renderer.SetViewport(windowWidth, windowHeight);
-	
+
+
 }
 
 void Cleanup(GLFWwindow* window)
@@ -232,14 +242,14 @@ std::shared_ptr<Camera> MakeCamera() {
 std::shared_ptr<Camera> MakeDefaultCamera()
 {
 	MeshModel mesh = MeshModel(*(Utils::LoadMeshModel("../computergraphics2021-or-and-abed/Data/camera.obj")));
-	glm::vec3 nEye = glm::vec3(0, 0, 250);
+	glm::vec3 nEye = glm::vec3(0, 0, 1);
 	glm::vec3 nAt = glm::vec3(0, 0, -1);
 	glm::vec3 nUp = glm::vec3(0, 1, 0);
 	auto cam = std::make_shared<Camera>(mesh, nEye, nAt, nUp);
 
 	glm::fvec3 scale = glm::fvec3(1,1,1);
 	glm::fvec3 Rotate = glm::fvec3(0, 0, 0);
-	glm::fvec3 Translate = glm::fvec3(0, 0, 250);
+	glm::fvec3 Translate = glm::fvec3(0, 0, 1);
 
 	cam->setObjectTransformationUpdates(scale, Rotate, Translate);
 	return cam;
@@ -570,14 +580,14 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 				
 						ImGui::Checkbox("symmetric", &symmetriceye);
 						if (symmetriceye) {
-							ImGui::SliderFloat("Eye", &vecEye[0], -minWindow, minWindow);
+							ImGui::SliderFloat("Eye", &vecEye[0], -1 , 1);
 							vecEye[1]=vecEye[0];
 							vecEye[2] = vecEye[0];
 						}
 						else {
-							ImGui::SliderFloat("Eye X", &vecEye[0], -windowsWidth, windowsWidth);
-							ImGui::SliderFloat("Eye Y", &vecEye[1], -windowHeight, windowHeight);
-							ImGui::SliderFloat("Eye Z", &vecEye[2], -maxWindow, maxWindow);
+							ImGui::SliderFloat("Eye X", &vecEye[0], -1 , 1);
+							ImGui::SliderFloat("Eye Y", &vecEye[1], -1 , 1);
+							ImGui::SliderFloat("Eye Z", &vecEye[2], -1 , 1);
 						}
 			
 				
@@ -586,9 +596,9 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 							vecEye[1] = 0.f;
 							vecEye[2] = 0.f;
 						}
-						ImGui::SliderFloat("at X", &vecAt[0], -windowsWidth, windowsWidth);
-						ImGui::SliderFloat("at Y", &vecAt[1], -windowHeight, windowHeight);
-						ImGui::SliderFloat("at Z", &vecAt[2], -maxWindow, maxWindow);
+						ImGui::SliderFloat("at X", &vecAt[0], -1 , 1);
+						ImGui::SliderFloat("at Y", &vecAt[1], -1 , 1);
+						ImGui::SliderFloat("at Z", &vecAt[2], -1 , 1);
 						if (ImGui::Button("Reset at")) {
 							vecAt[0] = 0.f;
 							vecAt[1] = 0.f;
@@ -675,9 +685,9 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 						}
 						if (ImGui::CollapsingHeader("Translating", ImGuiTreeNodeFlags_None))
 						{
-							ImGui::SliderFloat("Translate X", &Translate[0], -windowsWidth, windowsWidth);
-							ImGui::SliderFloat("Translate Y", &Translate[1], -windowsHeight, windowsHeight);
-							ImGui::SliderFloat("Translate Z", &Translate[2], -maxWindow, maxWindow);
+							ImGui::SliderFloat("Translate X", &Translate[0], -1, 1);
+							ImGui::SliderFloat("Translate Y", &Translate[1], -1, 1);
+							ImGui::SliderFloat("Translate Z", &Translate[2], -1, 1);
 							if (ImGui::Button("Reset trasnalte")) {
 								Translate = glm::vec3(0.0f, 0.0f, 0.0f);
 							}
@@ -705,9 +715,9 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 						}
 						if (ImGui::CollapsingHeader("Translating", ImGuiTreeNodeFlags_None))
 						{
-							ImGui::SliderFloat("Translate X", &worldTranslate[0], -windowsWidth, windowsWidth);
-							ImGui::SliderFloat("Translate Y", &worldTranslate[1], -windowsHeight, windowsHeight);
-							ImGui::SliderFloat("Translate Z", &worldTranslate[2], -maxWindow, maxWindow);
+							ImGui::SliderFloat("Translate X", &worldTranslate[0], -1, 1);
+							ImGui::SliderFloat("Translate Y", &worldTranslate[1], -1, 1);
+							ImGui::SliderFloat("Translate Z", &worldTranslate[2], -1, 1);
 							if (ImGui::Button("Reset Translating")) {
 								worldTranslate = glm::vec3(0.0f, 0.0f, 0.0f);
 							}

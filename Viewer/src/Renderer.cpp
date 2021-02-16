@@ -1088,10 +1088,10 @@ void Renderer::Render(const Scene& scene)
 
 	// updating camera params;
 	Camera& cam = scene.GetActiveCamera();
-	cam.right = (float)centerX;
-	cam.left = -(float)centerX;
-	cam.top = (float)centerY;
-	cam.bottom = -(float)centerY;
+	cam.right = (float)1;
+	cam.left = -(float)-1;
+	cam.top = (float)1;
+	cam.bottom = -(float)1;
 	cam.aspectRatio = windowsWidth / windowsHeight;
 	if (cam.GetOrthographicOrPerspective()) {
 		cam.SetViewVolumeCoordinates(cam.right, cam.left, cam.top, cam.bottom, cam.GetNear(), cam.GetFar());
@@ -1149,12 +1149,12 @@ void Renderer::Render(const Scene& scene)
 		currentModel.normalTransformation = finalTransformation;
 
 		//forth we do a viewport Transformation to fit the screen
-		finalTransformation = translate * AfterProjection * finalTransformation;
+		//finalTransformation = translate * AfterProjection * finalTransformation;
 
 
 
 
-		tmpTransformation = modelTransformation * scale;
+		tmpTransformation =  inverserCameraTransformation * modelTransformation * scale;
 		colorShader.setUniform("finalTransformation", tmpTransformation);
 		colorShader.setUniform("normalTransformation", normalMatrix);
 
@@ -1427,6 +1427,6 @@ void Renderer::SetViewport(int width, int height)
 {
 	viewport_height_ = height;
 	viewport_width_ = width;
-	CreateBuffers(width, height);
+	//CreateBuffers(width, height);
 }
 
