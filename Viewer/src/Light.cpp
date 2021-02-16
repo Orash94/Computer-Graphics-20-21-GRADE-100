@@ -98,5 +98,14 @@ glm::fvec3 Light::calculateSpecularParallel(glm::fvec3 MeshModelSpecularColor, g
 	return Is;
 }
 
+bool Light::getTypeOfLight() const
+{
+	if (typeOfLight == Point)
+	{
+		return true;
+	}
+	return false;
+}
+
 
 

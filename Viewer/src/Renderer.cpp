@@ -15,6 +15,7 @@ Renderer::Renderer(int viewport_width, int viewport_height ,  Scene& scene_) :
 	viewport_height_(viewport_height),
 	scene(scene_)
 {
+	ambientScene = 1.0f;
 	//InitOpenGLRendering();
 	//CreateBuffers(viewport_width, viewport_height);
 	//allocateZBuffer();
@@ -296,24 +297,24 @@ void Renderer::DrawBoundingBox(MeshModel& model, const Scene& scene, glm::fmat4x
 
 void Renderer::allocateZBuffer()
 {
-	Zbuffer = new float* [viewport_width_];
+	/*Zbuffer = new float* [viewport_width_];
 	for (int i = 0; i < viewport_width_; i++)
 		Zbuffer[i] = new float[viewport_height_];
 
 	for (int i = 0; i < viewport_width_; i++)
 		for (int j = 0; j < viewport_height_; j++)
-			Zbuffer[i][j] = FLT_MAX;
+			Zbuffer[i][j] = FLT_MAX;*/
 }
 
 void Renderer::allocateColorBuffer()
 {
-	localColorBuffer = new glm::vec3* [viewport_width_];
+	/*localColorBuffer = new glm::vec3* [viewport_width_];
 	for (int i = 0; i < viewport_width_; i++)
 		localColorBuffer[i] = new glm::vec3[viewport_height_];
 
 	for (int i = 0; i < viewport_width_; i++)
 		for (int j = 0; j < viewport_height_; j++)
-			localColorBuffer[i][j] = glm::vec3(0,0,0);
+			localColorBuffer[i][j] = glm::vec3(0,0,0);*/
 }
 
 void Renderer::PostProcessing()
@@ -942,10 +943,10 @@ void Renderer::DrawVerticesNormalPerFace(MeshModel& mesh, glm::fmat4x4 trasforma
 void Renderer::CreateBuffers(int w, int h)
 {
 	CreateOpenGLBuffer(); //Do not remove this line.
-	color_buffer_ = new float[3 * w * h];
-	allocateZBuffer();
-	allocateColorBuffer();
-	ClearColorBuffer(glm::vec3(0.0f, 0.0f, 0.0f));
+	//color_buffer_ = new float[3 * w * h];
+	//allocateZBuffer();
+	//allocateColorBuffer();
+	//ClearColorBuffer(glm::vec3(0.0f, 0.0f, 0.0f));
 }
 
 //##############################
@@ -1086,6 +1087,27 @@ void Renderer::Render(const Scene& scene)
 	int centerX = windowsWidth / 2;
 	int centerY = windowsHeight / 2;
 
+	int lightCount = scene.GetLightCount();
+	glm::vec4 lightColors[10];
+	glm::vec4 lightPos[10];
+	for (int i = 0; i < lightCount; ++i)
+	{
+		// setup lights
+		if (i < lightCount) {
+			lightColors[i] = glm::vec4(1, 1, 1, 1); // should be intensity. check for it later
+			if (scene.GetLight(i).getTypeOfLight()) {
+				lightPos[i] = glm::vec4(scene.GetLight(i).getCenter(), 1);
+			}
+			else {
+				lightPos[i] = glm::vec4(scene.GetLight(i).direction, 1.0f);
+			}
+		}
+		else {
+			lightColors[i] = glm::vec4(0.0f);
+			lightPos[i] = glm::vec4(0.0f);
+		}
+	}
+
 	// updating camera params;
 	Camera& cam = scene.GetActiveCamera();
 	cam.right = (float)centerX;
@@ -1105,12 +1127,18 @@ void Renderer::Render(const Scene& scene)
 	glm::fmat4x4 AfterProjection = scaleAfterProjection * translateAfterProjection;
 	afterProjectionMatrix = AfterProjection;
 
+	
+
 	colorShader.use();
 	
 
-
+	
 	GLuint cur_vao;
 	GLuint cur_vbo;
+
+	colorShader.setUniform("lightColor", lightColors);
+	colorShader.setUniform("lightPos", lightPos);
+	colorShader.setUniform("lightsCount", lightCount);
 	
 	int modelCount = scene.GetModelCount();
 	for (int currentModelIndex = 0; currentModelIndex < modelCount; currentModelIndex++)
@@ -1155,8 +1183,20 @@ void Renderer::Render(const Scene& scene)
 
 
 		tmpTransformation = modelTransformation * scale;
+
+		glm::vec3 fsEye = Utils::applyTransformationToVector(scene.GetActiveCamera().getEye(), tmpTransformation);
+		colorShader.setUniform("eye",fsEye);
+		colorShader.setUniform("SceneAmbient", ambientScene);
 		colorShader.setUniform("finalTransformation", tmpTransformation);
 		colorShader.setUniform("normalTransformation", normalMatrix);
+		colorShader.setUniform("modelColor", glm::vec4(currentModel.GetColor(), 1.0f));
+		colorShader.setUniform("material.AmbientColor", glm::vec4(currentModel.ambientColor,1.0f));
+		colorShader.setUniform("material.DiffuseColor", glm::vec4(currentModel.diffuseColor, 1.0));
+		colorShader.setUniform("material.SpecualrColor", glm::vec4(currentModel.specularColor,1.0));
+		colorShader.setUniform("material.KA", currentModel.k1);
+		colorShader.setUniform("material.KD", currentModel.k2);
+		colorShader.setUniform("material.KS", currentModel.k3);
+		colorShader.setUniform("material.KSE", currentModel.k4);
 
 		cur_vao = currentModel.getVAO();
 		cur_vbo = currentModel.getVBO();
@@ -1186,7 +1226,7 @@ void Renderer::Render(const Scene& scene)
 		glBindVertexArray(cur_vao);
 		glDrawArrays(GL_TRIANGLES, 0, currentModel.getVertexes().size());
 		glBindVertexArray(0);
-
+		//glDeleteBuffers(1, &cur_vbo);
 	}
 
 	
@@ -1427,6 +1467,6 @@ void Renderer::SetViewport(int width, int height)
 {
 	viewport_height_ = height;
 	viewport_width_ = width;
-	CreateBuffers(width, height);
+	//CreateBuffers(width, height);
 }
 

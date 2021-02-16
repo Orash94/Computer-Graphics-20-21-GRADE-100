@@ -55,6 +55,8 @@ private:
 	void ScanConversionTrianglePhongShading(const glm::fvec3& v1, const glm::fvec3& v2, const glm::fvec3& v3, const  MeshModel& mesh, const Scene& scene , const Face& face);
 	glm::fmat4x4 afterProjectionMatrix;
 	
+	float ambientScene;
+
 	float* color_buffer_;
 	int viewport_width_;
 	int viewport_height_;

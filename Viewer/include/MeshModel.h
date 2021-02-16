@@ -5,6 +5,13 @@
 #include "Face.h"
 #include <map>
 
+#define X_FIRST  0
+#define Y_FIRST  1
+#define Z_FIRST  2
+
+#define AMBIENT  0
+#define DIFFUSE  1
+#define SPECURAL  2
 
 struct Vertex
 {
@@ -28,6 +35,11 @@ public:
 	const std::string& GetModelName() const;
 	const glm::vec3& GetVertexAtIndex(int i) const;
 
+
+	float k1;
+	float k2;
+	float k3;
+	int k4;
 	
 	void setFaceNormal(int index, const glm::fvec3 normal);
 	std::vector<Face> getFaces() const;

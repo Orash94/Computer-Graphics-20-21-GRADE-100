@@ -37,6 +37,9 @@ public:
 	// We are going to speed up looking for uniforms by keeping their locations in a map
 	GLint getUniformLocation(const GLchar * name);
 
+	void setUniform(const GLchar* name, const glm::vec4* v);
+	void setUniform(const GLchar* name, const glm::vec3* v);
+
 private:
 
 	string fileToString(const string& filename);

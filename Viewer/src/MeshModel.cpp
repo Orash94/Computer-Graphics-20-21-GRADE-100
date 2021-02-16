@@ -49,6 +49,11 @@ MeshModel::MeshModel(std::vector<Face> faces, std::vector<glm::vec3> vertices, s
 			modelVertices.push_back(vertex);
 		}
 	}
+
+	k1 = 0.5f;
+	k2 = 0.5f;
+	k3 = 0.5f;
+	k4 = 1.0f;
 }
 
 MeshModel::~MeshModel()

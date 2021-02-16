@@ -14,8 +14,8 @@ uniform mat4 normalTransformation;
 
 // These outputs will be available in the fragment shader as inputs
 out vec3 orig_fragPos;
-out vec3 fragPos;
-out vec3 fragNormal;
+out vec4 fragPos;
+out vec4 fragNormal;
 //out vec2 fragTexCoords;
 
 void main()
@@ -23,12 +23,12 @@ void main()
 	// Apply the model transformation to the 'position' and 'normal' properties of the vertex,
 	// so the interpolated values of these properties will be available for usi n the fragment shader
 	orig_fragPos = vec3(vec4(pos, 1.0f));
-	fragPos = vec3(finalTransformation * vec4(pos, 1.0f));
+	fragPos = vec4(finalTransformation * vec4(pos, 1.0f));
 
 	//normal transformation
 	vec3 temp = vec3(normalTransformation * vec4(normal,1.0f));
 	vec3 pos_zero= vec3(normalTransformation * vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	fragNormal = temp -  pos_zero;
+	fragNormal = vec4(temp -  pos_zero, 1.0f);
 
 	// Pass the vertex texture coordinates property as it is. Its interpolated value
 	// will be avilable for us in the fragment shader
