@@ -51,9 +51,9 @@ MeshModel::MeshModel(std::vector<Face> faces, std::vector<glm::vec3> vertices, s
 
 
 	//dont know aht is this for
-	k1 = 0.5f;
-	k2 = 0.5f;
-	k3 = 0.5f;
+	k1 = 1.0f;
+	k2 = 1.0f;
+	k3 = 1.0f;
 	k4 = 1.0f;
 
 	glGenVertexArrays(1, &vao);

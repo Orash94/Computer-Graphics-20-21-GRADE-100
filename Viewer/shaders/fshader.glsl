@@ -32,6 +32,7 @@ uniform vec3 eye;
 uniform vec4 SceneAmbient;
 uniform vec4 lightPos [10];
 uniform vec4 lightColor [10];
+uniform vec4 lightType [10];
 uniform int lightsCount;
 
 //in vec2 fragTexCoords;
@@ -56,26 +57,37 @@ void main()
 	vec4 DiffuseColor = material.DiffuseColor;
 	vec4 SpecualrColor = material.SpecualrColor;
 
-	vec3 N = normalize(fragNormal.xyz / fragNormal.w);
-	vec3 V = normalize(eye - (fragPos.xyz / fragPos.w));	//assuming camera is always at 0,0,0
+	vec3 N = normalize(fragNormal.xyz / fragNormal.w);		//normal of point 
+	vec3 V = normalize(eye - (fragPos.xyz / fragPos.w));	//camera direction
 
-	// ambient is only needed once
-	vec4 ac = material.KA * AmbientColor;
-	vec4 IA = clamp(ac*SceneAmbient, 0.0f, 1.0f);
-
+	
+	vec4 IA = vec4(0.0f);
 	vec4 ID = vec4(0.0f);
 	vec4 IS = vec4(0.0f);
 
 	for (int i=0; i<lightsCount; i++) {
+		// ambient is only needed once
+		IA = clamp(AmbientColor, 0.0f, 1.0f);
+
 		vec4 lightColor = lightColor[i];
 		vec3 pos = lightPos[i].xyz / lightPos[i].w;
 
-		vec3 L = normalize(pos - (fragPos.xyz / fragPos.w));
-		vec3 R = normalize(reflect(-L, N));
+		vec3 L;
+		vec3 R;							//reflected light direction
+		if(lightType[i] == vec4(0)){
+			// point 
+			L = normalize(pos - (fragPos.xyz / fragPos.w));
+			R = normalize(reflect(L, N));	
+		}else{
+			//parallel
+			L = normalize(pos );			//pos here is treated as light direction
+			R = normalize(reflect(-L, N));	
+		}
 
-		float LN = max(dot(N, L), 0.0f);
-		vec4 dc = material.KD * LN * DiffuseColor;
-		ID = ID + clamp(dc*lightColor, 0.0f, 1.0f);
+
+
+		ID = clamp( dot(N, L)* DiffuseColor, 0.0f, 1.0f);		
+
 
 		float RV = max(dot(R, V), 0.0f);
 		vec4 sc = material.KS * pow(RV,material.KSE) * SpecualrColor;
@@ -83,7 +95,7 @@ void main()
 
 	}
 	if (lightsCount != 0)
-		frag_color = clamp(IA + ID + IS + modelColor, 0.0f, 1.0f);
+		frag_color = clamp(IA + ID + IS , 0.0f, 1.0f);
 	else
 		frag_color = modelColor;
 

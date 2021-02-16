@@ -1079,24 +1079,32 @@ void Renderer::Render(const Scene& scene)
 	int lightCount = scene.GetLightCount();
 	glm::vec4 lightColors[10];
 	glm::vec4 lightPos[10];
+	glm::vec4 lightType[10];
+
+
+	Camera& currentcam = scene.GetActiveCamera();
+	glm::fmat4x4 inversercameratransformation = glm::lookAt(currentcam.getEye(), currentcam.getAt(), currentcam.getUp());
+	glm::fmat4x4 viewvolumetransformation = currentcam.GetViewTransformation();
+	glm::fmat4x4 camTransformation = viewvolumetransformation * inversercameratransformation;
 
 
 	//TODO figue out waht to do here
 	for (int i = 0; i < lightCount; ++i)
 	{
+		Light currentLight = scene.GetLight(i);
+		glm::fmat4x4 lightTransformation = camTransformation * currentLight.getTransformation();
+
 		// setup lights
 		if (i < lightCount) {
-			lightColors[i] = glm::vec4(1, 1, 1, 1); // should be intensity. check for it later
-			if (scene.GetLight(i).getTypeOfLight()) {
-				lightPos[i] = glm::vec4(scene.GetLight(i).getCenter(), 1);
+			lightColors[i] = glm::vec4(1, 1, 1, 1); // white light, racist
+			if (scene.GetLight(i).getTypeOfLight()) {	//point
+				lightPos[i] = glm::vec4(Utils::applyTransformationToVector(glm::fvec3(0,0,0) , lightTransformation), 1);
+				lightType[i] = glm::vec4(0);
 			}
-			else {
-				lightPos[i] = glm::vec4(scene.GetLight(i).direction, 1.0f);
+			else {										//paraller 
+				lightPos[i] = glm::vec4(Utils::applyTransformationToNormal(glm::fvec3(0.0f, 1.0f, 0.0f), lightTransformation), 1.0f);
+				lightType[i] = glm::vec4(1);
 			}
-		}
-		else {
-			lightColors[i] = glm::vec4(0.0f);
-			lightPos[i] = glm::vec4(0.0f);
 		}
 	}
 
@@ -1110,7 +1118,8 @@ void Renderer::Render(const Scene& scene)
 	colorShader.setUniform("lightColor", lightColors);
 	colorShader.setUniform("lightPos", lightPos);
 	colorShader.setUniform("lightsCount", lightCount);
-	
+	colorShader.setUniform("lightType", lightType);
+
 	int modelCount = scene.GetModelCount();
 	for (int currentModelIndex = 0; currentModelIndex < modelCount; currentModelIndex++)
 	{
@@ -1132,6 +1141,7 @@ void Renderer::Render(const Scene& scene)
 		glm::fmat4x4 tmpTransformation = viewVolumeTransformation * inverserCameraTransformation * modelTransformation * scale;
 
 		glm::vec3 fsEye = Utils::applyTransformationToVector(scene.GetActiveCamera().getEye(), tmpTransformation);
+
 		colorShader.setUniform("eye",fsEye);
 		colorShader.setUniform("SceneAmbient", ambientScene);
 		colorShader.setUniform("finalTransformation", tmpTransformation);
