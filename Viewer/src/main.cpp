@@ -317,6 +317,28 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 			ImGui::EndMenu();
 		}
 
+		if (ImGui::BeginMenu("Textures"))
+		{
+			if (ImGui::MenuItem("Texture", "CTRL+T")) {
+				nfdchar_t* outPath = NULL;
+				nfdresult_t result = NFD_OpenDialog("jpg", NULL, &outPath);
+				if (result == NFD_OKAY) {
+					
+					MeshModel& model = scene.GetActiveModel();
+					if (&model != nullptr) {
+						model.LoadTextures(outPath);
+					}
+					free(outPath);
+				}
+				else if (result == NFD_CANCEL) {
+				}
+				else {
+				}
+
+			}
+			ImGui::EndMenu();
+		}
+
 		if (ImGui::BeginMenu("Add"))
 		{
 			if (ImGui::MenuItem("Add Object", "CTRL+O"))
@@ -879,8 +901,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 						bool isColor = ImGui::RadioButton("Color", &model1.isTexture, 0);
 						ImGui::SameLine();
 						bool isTex = ImGui::RadioButton("Texture", &model1.isTexture, 1);
-						ImGui::SameLine();
-						if (isColor) {
+						if (model1.isTexture == 0) {
 							glm::vec3 currMeshColor = model1.GetColor();
 							float Color[3] = { currMeshColor[0], currMeshColor[1],currMeshColor[2] };
 							ImGui::ColorEdit3("choose color", (float*)&Color);
@@ -895,12 +916,15 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 							ImGui::ColorEdit3("specular color", (float*)&model1.specularColor);
 							ImGui::TreePop();
 						}
-						else if (isTex) {
+						else if (model1.isTexture == 1) {
 							if (ImGui::Button("Planar Projection")) {
 								model1.usePlanarMap();
 							}
 							if (ImGui::Button("Cylindrical Projection")) {
 								model1.useCylindricalMap();
+							}
+							if (ImGui::Button("Use Spherical Projection")) {
+								model1.useSphericalMap();
 							}
 						}
 					}

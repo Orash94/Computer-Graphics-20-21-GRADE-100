@@ -1161,6 +1161,8 @@ void Renderer::Render(const Scene& scene)
 		colorShader.setUniform("material.AmbientColor", currentModel.ambientColor);
 		colorShader.setUniform("material.DiffuseColor", currentModel.diffuseColor);
 		colorShader.setUniform("material.SpecualrColor", currentModel.specularColor);
+		colorShader.setUniform("isTexture", currentModel.isTexture);
+		colorShader.setUniform("textureMap", 0);
 
 		colorShader.setUniform("scale", scale);
 		colorShader.setUniform("modelTransformation", modelTransformation);
@@ -1172,10 +1174,12 @@ void Renderer::Render(const Scene& scene)
 		
 
 		// Drag our model's faces (triangles) in fill mode
+		currentModel.texture.bind(0);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glBindVertexArray(cur_vao);
 		glDrawArrays(GL_TRIANGLES, 0, currentModel.getVertexes().size());
 		glBindVertexArray(0);
+		currentModel.texture.unbind(0);
 	}
 
 	//PostProcessing();

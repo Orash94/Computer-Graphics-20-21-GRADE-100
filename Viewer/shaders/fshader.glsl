@@ -91,7 +91,7 @@ void main()
 	}
 	if (lightsCount != 0){
 		frag_color = vec4(IA + ID + IS,1) ;
-		if(isTexture){
+		if(isTexture == 1){
 			vec3 textureColor = vec3(texture(material.textureMap, fragTexCoords));
 			vec4 AmbientColor = vec4(textureColor, 1.0f);
 			vec4 DiffuseColor = vec4(textureColor, 1.0f);
@@ -102,7 +102,7 @@ void main()
 	else
 	{
 		frag_color = modelColor;
-		if(isTexture){
+		if(isTexture == 1){
 			vec3 textureColor = vec3(texture(material.textureMap, fragTexCoords));
 			frag_color = vec4(textureColor, 1.0f);
 		}

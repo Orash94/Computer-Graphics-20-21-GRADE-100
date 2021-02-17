@@ -4,6 +4,7 @@
 #include <string>
 #include "Face.h"
 #include <map>
+#include "Texture2D.h"
 
 #define X_FIRST  0
 #define Y_FIRST  1
@@ -28,17 +29,23 @@ public:
 	static enum modelType { Object, Camera, Light};
 
 	MeshModel(std::vector<Face> faces, std::vector<glm::vec3> vertices, std::vector<glm::vec3> normals, std::vector<glm::vec2> textureCoords , const std::string& model_name);
+	MeshModel::MeshModel(const MeshModel& ref);
 	virtual ~MeshModel();
 	const Face& GetFace(int index) const;
+	std::vector<glm::vec3> getVertices()const;
+	std::vector<glm::vec2> getTextureCoordinates()const;
+	std::vector<glm::vec3> getNormals()const;
 	int GetFacesCount() const;
 	int GetVerticesCount() const;
 	const std::string& GetModelName() const;
 	const glm::vec3& GetVertexAtIndex(int i) const;
 
 	int isTexture = 0; // 0 - no texture, 1 - is texture.
-
+	Texture2D texture;
 	void usePlanarMap();
 	void useCylindricalMap();
+	void useSphericalMap();
+	void LoadTextures(const char* path);
 
 
 	float k1;
@@ -141,6 +148,7 @@ protected:
 	std::vector<Face> faces_;
 	std::vector<glm::vec3> vertices_;
 	std::vector<glm::vec3> normals_;
+	std::vector<glm::vec2> textureCoords_;
 	std::string model_name_;
 
 
