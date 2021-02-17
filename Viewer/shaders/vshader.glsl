@@ -9,6 +9,11 @@ uniform mat4 model;	//inverse(modelWorldTransformation)*modelTransformation
 uniform mat4 view;	// viewVolumeTransformation
 uniform mat4 projection;	// AfterProjectTransforamtion * projectionTransformation
 
+uniform mat4 scale;
+uniform mat4 modelTransformation;
+uniform mat4 inverserCameraTransformation;
+uniform mat4 viewVolumeTransformation;
+
 uniform mat4 finalTransformation;
 uniform mat4 normalTransformation;
 
@@ -22,12 +27,13 @@ void main()
 {
 	// Apply the model transformation to the 'position' and 'normal' properties of the vertex,
 	// so the interpolated values of these properties will be available for usi n the fragment shader
+
 	orig_fragPos = vec3(vec4(pos, 1.0f));
-	fragPos = vec4(finalTransformation * vec4(pos, 1.0f));
+	fragPos = vec4(inverserCameraTransformation* modelTransformation * scale * vec4(pos, 1.0f));
 
 	//normal transformation
-	vec3 temp = vec3(normalTransformation * vec4(normal,1.0f));
-	vec3 pos_zero= vec3(normalTransformation * vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	vec3 temp = vec3(inverserCameraTransformation* modelTransformation * scale * vec4(normal,1.0f));
+	vec3 pos_zero= vec3(inverserCameraTransformation* modelTransformation * scale  * vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	fragNormal = vec4(temp -  pos_zero, 1.0f);
 
 	// Pass the vertex texture coordinates property as it is. Its interpolated value
@@ -35,6 +41,6 @@ void main()
 	fragTexCoords = texCoords;
 
 	// This is an internal OpenGL variable, we must set a value to this variable
-	gl_Position = vec4(finalTransformation * vec4(pos, 1.0f));
+	gl_Position = vec4(viewVolumeTransformation*inverserCameraTransformation* modelTransformation * scale * vec4(pos, 1.0f));
 //	gl_Position = gl_Position /gl_Position.w;
 }
