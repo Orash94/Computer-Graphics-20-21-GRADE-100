@@ -63,7 +63,7 @@ void main()
 	vec3 IA = vec3(0.0f);
 	vec3 ID = vec3(0.0f);
 	vec3 IS = vec3(0.0f);
-
+	vec3 Reflection;
 	for (int i=0; i<lightsCount; i++) {
 		vec3 LightDirection ;
 		if(lightType[i] == vec4(0)){
@@ -71,10 +71,11 @@ void main()
 			LightDirection = (lightPos[i].xyz /lightPos[i].w) - (fragPos.xyz/fragPos.w) ;
 		}else{
 			//parallel
-			LightDirection = (lightPos[i].xyz/lightPos[i].w) ;
+			LightDirection = -(lightPos[i].xyz/lightPos[i].w) ;
 		}
 		vec3 Eye  =  -(fragPos.xyz /fragPos.w) ; // if we assume eye is at (0,0,0)
-		vec3 Reflection = normalize(-reflect(LightDirection,N));
+		Reflection = normalize(-reflect(LightDirection,N));
+
 
 		IA = AmbientColor * lightAmbientColors[i];
 
