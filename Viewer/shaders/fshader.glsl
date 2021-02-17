@@ -11,14 +11,9 @@ struct Material
 	//		2. specular alpha constant
 	//		3. Anything else you find relevant
 
-	vec4 AmbientColor;
-	vec4 DiffuseColor;
-	vec4 SpecualrColor;
-
-	float KA;
-	float KD;
-	float KS;
-	int KSE;
+	vec3 AmbientColor;
+	vec3 DiffuseColor;
+	vec3 SpecualrColor;
 };
 
 // We set this field's properties from the C++ code
@@ -29,9 +24,14 @@ uniform vec4 modelColor;
 uniform vec4 wirmframe_color;
 uniform vec3 eye;
 
-uniform vec4 SceneAmbient;
 uniform vec4 lightPos [10];
-uniform vec4 lightColor [10];
+
+uniform vec3 lightAmbientColors[10];
+uniform vec3 lightDiffuseColors[10];
+uniform vec3 lightSpecularColors[10];
+uniform vec4 lightSpecularColorsAlpha[10];
+
+
 uniform vec4 lightType [10];
 uniform int lightsCount;
 
@@ -53,49 +53,40 @@ void main()
 	//frag_color = vec4(1,0,0,1);
 
 
-	vec4 AmbientColor = material.AmbientColor;
-	vec4 DiffuseColor = material.DiffuseColor;
-	vec4 SpecualrColor = material.SpecualrColor;
+	vec3 AmbientColor = material.AmbientColor;
+	vec3 DiffuseColor = material.DiffuseColor;
+	vec3 SpecualrColor = material.SpecualrColor;
 
 	vec3 N = normalize(fragNormal.xyz / fragNormal.w);		//normal of point 
-	vec3 V = normalize(eye - (fragPos.xyz / fragPos.w));	//camera direction
 
 	
-	vec4 IA = vec4(0.0f);
-	vec4 ID = vec4(0.0f);
-	vec4 IS = vec4(0.0f);
+	vec3 IA = vec3(0.0f);
+	vec3 ID = vec3(0.0f);
+	vec3 IS = vec3(0.0f);
 
 	for (int i=0; i<lightsCount; i++) {
-		// ambient is only needed once
-		IA = clamp(AmbientColor, 0.0f, 1.0f);
-
-		vec4 lightColor = lightColor[i];
-		vec3 pos = lightPos[i].xyz / lightPos[i].w;
-
-		vec3 L;
-		vec3 R;							//reflected light direction
+		vec3 LightDirection ;
 		if(lightType[i] == vec4(0)){
 			// point 
-			L = normalize(pos - (fragPos.xyz / fragPos.w));
-			R = normalize(reflect(L, N));	
+			LightDirection = (lightPos[i].xyz /lightPos[i].w) - (fragPos.xyz/fragPos.w) ;
 		}else{
 			//parallel
-			L = normalize(pos );			//pos here is treated as light direction
-			R = normalize(reflect(-L, N));	
+			LightDirection = (lightPos[i].xyz/lightPos[i].w) ;
 		}
+		vec3 Eye  =  -(fragPos.xyz /fragPos.w) ; // if we assume eye is at (0,0,0)
+		vec3 Reflection = normalize(-reflect(LightDirection,N));
+
+		IA = AmbientColor * lightAmbientColors[i];
 
 
+		ID = DiffuseColor * lightDiffuseColors[i] * max(dot(N,LightDirection),0.0);
+		ID = clamp(ID, 0.0, 1.0);
 
-		ID = clamp( dot(N, L)* DiffuseColor, 0.0f, 1.0f);		
-
-
-		float RV = max(dot(R, V), 0.0f);
-		vec4 sc = material.KS * pow(RV,material.KSE) * SpecualrColor;
-		IS = IS + clamp(sc*lightColor, 0.0f, 1.0f);
-
+		IS = SpecualrColor* lightSpecularColors[i] * pow(max(dot(Reflection,Eye),0.0),lightSpecularColorsAlpha[i][0]) ;
+		IS = clamp(IS, 0.0, 1.0); 
 	}
 	if (lightsCount != 0)
-		frag_color = clamp(IA + ID + IS , 0.0f, 1.0f);
+		frag_color = vec4(IA + ID + IS,1) ;
 	else
 		frag_color = modelColor;
 

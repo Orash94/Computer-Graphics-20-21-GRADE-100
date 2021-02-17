@@ -15,7 +15,6 @@ Renderer::Renderer(int viewport_width, int viewport_height ,  Scene& scene_) :
 	viewport_height_(viewport_height),
 	scene(scene_)
 {
-	ambientScene = 1.0f;
 	//InitOpenGLRendering();
 	//CreateBuffers(viewport_width, viewport_height);
 	//allocateZBuffer();
@@ -1077,7 +1076,11 @@ void Renderer::ClearColorBuffer(const glm::vec3& color)
 void Renderer::Render(const Scene& scene)
 {
 	int lightCount = scene.GetLightCount();
-	glm::vec4 lightColors[10];
+	glm::vec3 lightAmbientColors[10];
+	glm::vec3 lightDiffuseColors[10];
+	glm::vec3 lightSpecularColors[10];
+	glm::vec4 lightSpecularColorsAlpha[10];
+
 	glm::vec4 lightPos[10];
 	glm::vec4 lightType[10];
 
@@ -1092,11 +1095,15 @@ void Renderer::Render(const Scene& scene)
 	for (int i = 0; i < lightCount; ++i)
 	{
 		Light currentLight = scene.GetLight(i);
-		glm::fmat4x4 lightTransformation = camTransformation * currentLight.getTransformation();
+		glm::fmat4x4 lightTransformation = inversercameratransformation * currentLight.getTransformation();
 
 		// setup lights
 		if (i < lightCount) {
-			lightColors[i] = glm::vec4(1, 1, 1, 1); // white light, racist
+			lightAmbientColors[i]= currentLight.ambientColor;
+			lightDiffuseColors[i] = currentLight.diffuseColor;
+			lightSpecularColors[i] = currentLight.specularColor;
+			lightSpecularColorsAlpha[i] = glm::fvec4(currentLight.alpha, currentLight.alpha, currentLight.alpha,1);
+
 			if (scene.GetLight(i).getTypeOfLight()) {	//point
 				lightPos[i] = glm::vec4(Utils::applyTransformationToVector(glm::fvec3(0,0,0) , lightTransformation), 1);
 				lightType[i] = glm::vec4(0);
@@ -1104,6 +1111,7 @@ void Renderer::Render(const Scene& scene)
 			else {										//paraller 
 				lightPos[i] = glm::vec4(Utils::applyTransformationToNormal(glm::fvec3(0.0f, 1.0f, 0.0f), lightTransformation), 1.0f);
 				lightType[i] = glm::vec4(1);
+
 			}
 		}
 	}
@@ -1115,7 +1123,11 @@ void Renderer::Render(const Scene& scene)
 	GLuint cur_vao;
 	GLuint cur_vbo;
 
-	colorShader.setUniform("lightColor", lightColors);
+	colorShader.setUniform("lightAmbientColors", lightAmbientColors);
+	colorShader.setUniform("lightDiffuseColors", lightDiffuseColors);
+	colorShader.setUniform("lightSpecularColors", lightSpecularColors);
+	colorShader.setUniform("lightSpecularColorsAlpha", lightSpecularColorsAlpha);
+
 	colorShader.setUniform("lightPos", lightPos);
 	colorShader.setUniform("lightsCount", lightCount);
 	colorShader.setUniform("lightType", lightType);
@@ -1143,17 +1155,17 @@ void Renderer::Render(const Scene& scene)
 		glm::vec3 fsEye = Utils::applyTransformationToVector(scene.GetActiveCamera().getEye(), tmpTransformation);
 
 		colorShader.setUniform("eye",fsEye);
-		colorShader.setUniform("SceneAmbient", ambientScene);
 		colorShader.setUniform("finalTransformation", tmpTransformation);
 		colorShader.setUniform("normalTransformation", tmpTransformation);
 		colorShader.setUniform("modelColor", glm::vec4(currentModel.GetColor(), 1.0f));
-		colorShader.setUniform("material.AmbientColor", glm::vec4(currentModel.ambientColor,1.0f));
-		colorShader.setUniform("material.DiffuseColor", glm::vec4(currentModel.diffuseColor, 1.0));
-		colorShader.setUniform("material.SpecualrColor", glm::vec4(currentModel.specularColor,1.0));
-		colorShader.setUniform("material.KA", currentModel.k1);
-		colorShader.setUniform("material.KD", currentModel.k2);
-		colorShader.setUniform("material.KS", currentModel.k3);
-		colorShader.setUniform("material.KSE", currentModel.k4);
+		colorShader.setUniform("material.AmbientColor", currentModel.ambientColor);
+		colorShader.setUniform("material.DiffuseColor", currentModel.diffuseColor);
+		colorShader.setUniform("material.SpecualrColor", currentModel.specularColor);
+
+		colorShader.setUniform("scale", scale);
+		colorShader.setUniform("modelTransformation", modelTransformation);
+		colorShader.setUniform("inverserCameraTransformation", inverserCameraTransformation);
+		colorShader.setUniform("viewVolumeTransformation", viewVolumeTransformation);
 
 		cur_vao = currentModel.getVAO();
 		cur_vbo = currentModel.getVBO();
