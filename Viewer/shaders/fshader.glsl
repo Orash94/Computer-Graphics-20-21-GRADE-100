@@ -4,7 +4,7 @@
 
 struct Material
 {
-	//sampler2D textureMap;
+	sampler2D textureMap;
 	// You can add more fields here...
 	// Such as:
 	//		1. diffuse/specular relections constants
@@ -34,9 +34,11 @@ uniform vec4 lightPos [10];
 uniform vec4 lightColor [10];
 uniform vec4 lightType [10];
 uniform int lightsCount;
+uniform int isTexture;
 
-//in vec2 fragTexCoords;
+in vec2 fragTexCoords;
 in vec3 orig_fragPos;
+
 // Inputs from vertex shader (after interpolation was applied)
 in vec4 fragPos;
 in vec4 fragNormal;
@@ -77,16 +79,20 @@ void main()
 		if(lightType[i] == vec4(0)){
 			// point 
 			L = normalize(pos - (fragPos.xyz / fragPos.w));
-			R = normalize(reflect(L, N));	
+			//R = normalize(reflect(L, N));	
+			ID = clamp( dot(N, L)* DiffuseColor, 0.0f, 1.0f);
+			R = normalize(reflect(L, N));
 		}else{
 			//parallel
-			L = normalize(pos );			//pos here is treated as light direction
-			R = normalize(reflect(-L, N));	
+			L = normalize(pos );
+			ID = clamp( dot(N, -L)* DiffuseColor, 0.0f, 1.0f);	//pos here is treated as light direction
+			R = normalize(reflect(-L, N));
+				
 		}
 
+		
 
-
-		ID = clamp( dot(N, L)* DiffuseColor, 0.0f, 1.0f);		
+			
 
 
 		float RV = max(dot(R, V), 0.0f);
@@ -94,10 +100,24 @@ void main()
 		IS = IS + clamp(sc*lightColor, 0.0f, 1.0f);
 
 	}
-	if (lightsCount != 0)
+	if (lightsCount != 0){
 		frag_color = clamp(IA + ID + IS , 0.0f, 1.0f);
+		if(isTexture){
+			vec3 textureColor = vec3(texture(material.textureMap, fragTexCoords));
+			vec4 AmbientColor = vec4(textureColor, 1.0f);
+			vec4 DiffuseColor = vec4(textureColor, 1.0f);
+			vec4 SpecualrColor = vec4(textureColor, 1.0f);
+			frag_color = vec4(textureColor, 1.0f);
+		}
+	}
 	else
-		frag_color = modelColor;
+	{
+		if(isTexture){
+			vec3 textureColor = vec3(texture(material.textureMap, fragTexCoords));
+			modelColor = vec4(textureColor, 1.0f);
+			frag_color = modelColor;
+		}
+	}
 
 
 }

@@ -2,7 +2,7 @@
 
 layout(location = 0) in vec3 pos;
 layout(location = 1) in vec3 normal;
-//layout(location = 2) in vec2 texCoords;
+layout(location = 2) in vec2 texCoords;
 
 // The model/view/projection matrices
 uniform mat4 model;	//inverse(modelWorldTransformation)*modelTransformation
@@ -16,7 +16,7 @@ uniform mat4 normalTransformation;
 out vec3 orig_fragPos;
 out vec4 fragPos;
 out vec4 fragNormal;
-//out vec2 fragTexCoords;
+out vec2 fragTexCoords;
 
 void main()
 {
@@ -32,7 +32,7 @@ void main()
 
 	// Pass the vertex texture coordinates property as it is. Its interpolated value
 	// will be avilable for us in the fragment shader
-	//fragTexCoords = texCoords;
+	fragTexCoords = texCoords;
 
 	// This is an internal OpenGL variable, we must set a value to this variable
 	gl_Position = vec4(finalTransformation * vec4(pos, 1.0f));

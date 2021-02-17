@@ -35,6 +35,11 @@ public:
 	const std::string& GetModelName() const;
 	const glm::vec3& GetVertexAtIndex(int i) const;
 
+	int isTexture = 0; // 0 - no texture, 1 - is texture.
+
+	void usePlanarMap();
+	void useCylindricalMap();
+
 
 	float k1;
 	float k2;

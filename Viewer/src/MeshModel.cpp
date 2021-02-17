@@ -126,6 +126,29 @@ const glm::vec3& MeshModel::GetVertexAtIndex(int i) const
 	return vertices_[i];
 }
 
+void MeshModel::usePlanarMap()
+{
+	for (Vertex& vertex : modelVertices) {
+		vertex.textureCoords = glm::vec2(vertex.position[0], vertex.position[1]);	
+	}
+	glBindVertexArray(getVAO());
+	glBindBuffer(GL_VERTEX_ARRAY, getVBO());
+	glBufferSubData(GL_ARRAY_BUFFER, 0, modelVertices.size() * sizeof(Vertex), &modelVertices[0]);
+	glBindVertexArray(0);
+}
+
+void MeshModel::useCylindricalMap()
+{
+	for (Vertex& vertex : modelVertices) {
+		float theta = glm::atan(vertex.position[2] / vertex.position[0]);
+		vertex.textureCoords = glm::normalize(glm::abs(glm::vec2(glm::cos(theta), glm::sin(theta))));
+	}
+	glBindVertexArray(getVAO());
+	glBindBuffer(GL_VERTEX_ARRAY, getVBO());
+	glBufferSubData(GL_ARRAY_BUFFER, 0, modelVertices.size() * sizeof(Vertex), &modelVertices[0]);
+	glBindVertexArray(0);
+}
+
 
 void MeshModel::setFaceNormal(int index, const glm::fvec3 normal)
 {

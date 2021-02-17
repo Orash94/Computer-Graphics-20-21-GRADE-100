@@ -875,20 +875,34 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 						model1.setWorldTransformationUpdates(worldScale, worldRotate, worldTranslate);
 						ImGui::TreePop();
 					}
-					if (ImGui::TreeNode("model color selection:")) {
-						glm::vec3 currMeshColor = model1.GetColor();
-						float Color[3] = { currMeshColor[0], currMeshColor[1],currMeshColor[2] };
-						ImGui::ColorEdit3("choose color", (float*)&Color);
+					if (ImGui::TreeNode("model color or texture selection:")) {
+						bool isColor = ImGui::RadioButton("Color", &model1.isTexture, 0);
+						ImGui::SameLine();
+						bool isTex = ImGui::RadioButton("Texture", &model1.isTexture, 1);
+						ImGui::SameLine();
+						if (isColor) {
+							glm::vec3 currMeshColor = model1.GetColor();
+							float Color[3] = { currMeshColor[0], currMeshColor[1],currMeshColor[2] };
+							ImGui::ColorEdit3("choose color", (float*)&Color);
 
-						for (int i = 0; i < 3; i++) {
-							currMeshColor[i] = Color[i];
+							for (int i = 0; i < 3; i++) {
+								currMeshColor[i] = Color[i];
+							}
+							model1.SetColor(currMeshColor);
+
+							ImGui::ColorEdit3("ambient color", (float*)&model1.ambientColor);
+							ImGui::ColorEdit3("diffuse color", (float*)&model1.diffuseColor);
+							ImGui::ColorEdit3("specular color", (float*)&model1.specularColor);
+							ImGui::TreePop();
 						}
-						model1.SetColor(currMeshColor);
-
-						ImGui::ColorEdit3("ambient color", (float*)&model1.ambientColor);
-						ImGui::ColorEdit3("diffuse color", (float*)&model1.diffuseColor);
-						ImGui::ColorEdit3("specular color", (float*)&model1.specularColor);
-						ImGui::TreePop();
+						else if (isTex) {
+							if (ImGui::Button("Planar Projection")) {
+								model1.usePlanarMap();
+							}
+							if (ImGui::Button("Cylindrical Projection")) {
+								model1.useCylindricalMap();
+							}
+						}
 					}
 
 					if (ImGui::TreeNode("Shading options:")) {
