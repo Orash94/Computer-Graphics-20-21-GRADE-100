@@ -74,7 +74,7 @@ MeshModel::MeshModel(std::vector<Face> faces, std::vector<glm::vec3> vertices, s
 	glEnableVertexAttribArray(1);
 
 	// texture attribute #TODO
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(6 * sizeof(GLfloat)));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(6 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(2);
 
 
@@ -249,9 +249,22 @@ void MeshModel::usePlanarMap()
 
 void MeshModel::useCylindricalMap()
 {
+	float pi = 3.14159265359;
+	//phi = atan2(x / y); theta = atan2(x / z)
+	float phi, theta;
+	
 	for (Vertex& vertex : modelVertices) {
-		float theta = glm::atan(vertex.position[2] / vertex.position[0]);
-		vertex.textureCoords = glm::normalize(glm::abs(glm::vec2(glm::cos(theta), glm::sin(theta))));
+		/*float theta = glm::atan(vertex.position[2] / vertex.position[0]);
+		vertex.textureCoords = glm::normalize(glm::abs(glm::vec2(glm::cos(theta), glm::sin(theta))));*/
+
+		/*float x, y;
+		x = glm::cos(vertex.position[0] * 2 * pi);
+		y = glm::sin(vertex.position[1] * 2 * pi);
+		vertex.textureCoords = glm::normalize(glm::vec2(x, y));*/
+		
+		phi = std::atan2(vertex.position[0] , vertex.position[1]);
+		theta = std::atan2(vertex.position[0] , vertex.position[2]);
+		vertex.textureCoords = glm::vec2(phi, theta);
 	}
 	glBindVertexArray(getVAO());
 	glBindBuffer(GL_VERTEX_ARRAY, getVBO());
@@ -264,7 +277,7 @@ void MeshModel::useSphericalMap()
 	float pi = 3.14159265359;
 
 	for (Vertex& vertex : modelVertices) {
-		vertex.textureCoords = glm::normalize(glm::vec2(glm::atan(vertex.position.x, vertex.position.y) / 2 * pi + 0.5f, 0.5f - glm::asin(vertex.position.z) / pi));
+		vertex.textureCoords = glm::vec2(vertex.position[0] / (1 - vertex.position[2]), vertex.position[1] / (1 - vertex.position[2]));
 	}
 	glBindVertexArray(getVAO());
 	glBindBuffer(GL_VERTEX_ARRAY, getVBO());
