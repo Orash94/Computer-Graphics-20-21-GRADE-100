@@ -59,13 +59,7 @@ void main()
 	vec3 DiffuseColor = material.DiffuseColor;
 	vec3 SpecualrColor = material.SpecualrColor;
 
-	if(isTexture == 1){
-			vec3 textureColor = vec3(texture(material.textureMap, fragTexCoords));
-			vec4 AmbientColor = vec4(textureColor, 1.0f);
-			vec4 DiffuseColor = vec4(textureColor, 1.0f);
-			vec4 SpecualrColor = vec4(textureColor, 1.0f);
-			frag_color = vec4(textureColor, 1.0f);
-		}
+
 
 	vec3 N = normalize(fragNormal.xyz / fragNormal.w);		//normal of point 
 
@@ -99,7 +93,13 @@ void main()
 	}
 	if (lightsCount != 0){
 		frag_color = vec4(IA + ID + IS,1) ;
-		
+		if(isTexture == 1){
+			vec3 textureColor = vec3(texture(material.textureMap, fragTexCoords));
+			vec4 AmbientColor = vec4(textureColor, 1.0f);
+			vec4 DiffuseColor = vec4(textureColor, 1.0f);
+			vec4 SpecualrColor = vec4(textureColor, 1.0f);
+			frag_color = vec4(textureColor, 1.0f);
+		}
 	}
 	else
 	{

@@ -43,7 +43,7 @@ MeshModel::MeshModel(std::vector<Face> faces, std::vector<glm::vec3> vertices, s
 				vertex.textureCoords = textureCoords[textureCoordsIndex];
 			}
 			else {
-				vertex.textureCoords = glm::vec2(0, 0);
+				vertex.textureCoords = glm::vec2(vertex.position[0], vertex.position[1]);
 			}
 
 			modelVertices.push_back(vertex);
@@ -51,7 +51,7 @@ MeshModel::MeshModel(std::vector<Face> faces, std::vector<glm::vec3> vertices, s
 	}
 
 
-	//dont know aht is this for
+	
 	k1 = 1.0f;
 	k2 = 1.0f;
 	k3 = 1.0f;
@@ -74,8 +74,8 @@ MeshModel::MeshModel(std::vector<Face> faces, std::vector<glm::vec3> vertices, s
 	glEnableVertexAttribArray(1);
 
 	// texture attribute #TODO
-	/*glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(6 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(2);*/
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(6 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);
 
 
 
