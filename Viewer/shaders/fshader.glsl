@@ -30,7 +30,7 @@ uniform vec3 lightAmbientColors[10];
 uniform vec3 lightDiffuseColors[10];
 uniform vec3 lightSpecularColors[10];
 uniform vec4 lightSpecularColorsAlpha[10];
-
+uniform int numOfBits;
 
 uniform vec4 lightType [10];
 uniform int lightsCount;
@@ -58,6 +58,14 @@ void main()
 	vec3 AmbientColor = material.AmbientColor;
 	vec3 DiffuseColor = material.DiffuseColor;
 	vec3 SpecualrColor = material.SpecualrColor;
+
+	if(isTexture == 1){
+			vec3 textureColor = vec3(texture(material.textureMap, fragTexCoords));
+			vec4 AmbientColor = vec4(textureColor, 1.0f);
+			vec4 DiffuseColor = vec4(textureColor, 1.0f);
+			vec4 SpecualrColor = vec4(textureColor, 1.0f);
+			frag_color = vec4(textureColor, 1.0f);
+		}
 
 	vec3 N = normalize(fragNormal.xyz / fragNormal.w);		//normal of point 
 
@@ -91,13 +99,7 @@ void main()
 	}
 	if (lightsCount != 0){
 		frag_color = vec4(IA + ID + IS,1) ;
-		if(isTexture == 1){
-			vec3 textureColor = vec3(texture(material.textureMap, fragTexCoords));
-			vec4 AmbientColor = vec4(textureColor, 1.0f);
-			vec4 DiffuseColor = vec4(textureColor, 1.0f);
-			vec4 SpecualrColor = vec4(textureColor, 1.0f);
-			frag_color = vec4(textureColor, 1.0f);
-		}
+		
 	}
 	else
 	{
@@ -108,6 +110,7 @@ void main()
 		}
 	}
 
+	frag_color = (round(frag_color*255 / numOfBits) *  numOfBits) / 255 ;
 
 }
 

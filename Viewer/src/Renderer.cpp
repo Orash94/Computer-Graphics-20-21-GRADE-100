@@ -1094,7 +1094,7 @@ void Renderer::Render(const Scene& scene)
 	//TODO figue out waht to do here
 	for (int i = 0; i < lightCount; ++i)
 	{
-		Light currentLight = scene.GetLight(i);
+		Light& currentLight = scene.GetLight(i);
 		glm::fmat4x4 lightTransformation = inversercameratransformation * currentLight.getTransformation();
 
 		// setup lights
@@ -1127,6 +1127,7 @@ void Renderer::Render(const Scene& scene)
 	colorShader.setUniform("lightDiffuseColors", lightDiffuseColors);
 	colorShader.setUniform("lightSpecularColors", lightSpecularColors);
 	colorShader.setUniform("lightSpecularColorsAlpha", lightSpecularColorsAlpha);
+	colorShader.setUniform("material.textureMap", 0);
 
 	colorShader.setUniform("lightPos", lightPos);
 	colorShader.setUniform("lightsCount", lightCount);
@@ -1162,7 +1163,8 @@ void Renderer::Render(const Scene& scene)
 		colorShader.setUniform("material.DiffuseColor", currentModel.diffuseColor);
 		colorShader.setUniform("material.SpecualrColor", currentModel.specularColor);
 		colorShader.setUniform("isTexture", currentModel.isTexture);
-		colorShader.setUniform("textureMap", 0);
+		colorShader.setUniform("numOfBits", 256 - currentModel.numOfColorBits);
+		
 
 		colorShader.setUniform("scale", scale);
 		colorShader.setUniform("modelTransformation", modelTransformation);

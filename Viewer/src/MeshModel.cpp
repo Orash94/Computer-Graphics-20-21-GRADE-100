@@ -169,8 +169,8 @@ MeshModel::MeshModel(const MeshModel& ref):
 	glEnableVertexAttribArray(1);
 
 	// texture attribute #TODO
-	/*glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(6 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(2);*/
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(6 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);
 
 
 
@@ -274,7 +274,8 @@ void MeshModel::useSphericalMap()
 
 void MeshModel::LoadTextures(const char* path)
 {
-	texture.loadTexture(path);
+	if (!(texture.loadTexture(path, true)))
+		texture.loadTexture(path, true);
 }
 
 

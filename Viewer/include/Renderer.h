@@ -3,6 +3,7 @@
 #include "ShaderProgram.h"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include "Texture2D.h"
 
 class Renderer
 {

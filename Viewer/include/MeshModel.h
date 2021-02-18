@@ -47,6 +47,9 @@ public:
 	void useSphericalMap();
 	void LoadTextures(const char* path);
 
+	bool isToon;
+	int numOfColorBits = 255;
+
 
 	float k1;
 	float k2;
