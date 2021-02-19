@@ -291,6 +291,14 @@ void MeshModel::LoadTextures(const char* path)
 		texture.loadTexture(path, true);
 }
 
+void MeshModel::LoadNormalMap(const char* path)
+{
+	if (!(nomralMap.loadTexture(path, true)))
+		nomralMap.loadTexture(path, true);
+}
+
+
+
 
 void MeshModel::setFaceNormal(int index, const glm::fvec3 normal)
 {

@@ -17,6 +17,9 @@ uniform mat4 viewVolumeTransformation;
 uniform mat4 finalTransformation;
 uniform mat4 normalTransformation;
 
+uniform bool mapNormal;
+uniform sampler2D nomralMap;
+
 // These outputs will be available in the fragment shader as inputs
 out vec3 orig_fragPos;
 out vec4 fragPos;
@@ -32,7 +35,15 @@ void main()
 	fragPos = vec4(inverserCameraTransformation* modelTransformation * scale * vec4(pos, 1.0f));
 
 	//normal transformation
-	vec3 temp = vec3(inverserCameraTransformation* modelTransformation * scale * vec4(normal,1.0f));
+
+	vec3 newNormal; 
+	if(mapNormal){
+		newNormal = normalize(vec3(texture(nomralMap, fragTexCoords).rgb)*2 -1);
+	}else{
+		newNormal = normal;
+	}
+
+	vec3 temp = vec3(inverserCameraTransformation* modelTransformation * scale * vec4(newNormal,1.0f));
 	vec3 pos_zero= vec3(inverserCameraTransformation* modelTransformation * scale  * vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	fragNormal = vec4(temp -  pos_zero, 1.0f);
 

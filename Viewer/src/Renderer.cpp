@@ -1128,10 +1128,12 @@ void Renderer::Render(const Scene& scene)
 	colorShader.setUniform("lightSpecularColors", lightSpecularColors);
 	colorShader.setUniform("lightSpecularColorsAlpha", lightSpecularColorsAlpha);
 	colorShader.setUniform("material.textureMap", 0);
+	colorShader.setUniform("nomralMap", 1);
 
 	colorShader.setUniform("lightPos", lightPos);
 	colorShader.setUniform("lightsCount", lightCount);
 	colorShader.setUniform("lightType", lightType);
+	
 
 	int modelCount = scene.GetModelCount();
 	for (int currentModelIndex = 0; currentModelIndex < modelCount; currentModelIndex++)
@@ -1164,7 +1166,7 @@ void Renderer::Render(const Scene& scene)
 		colorShader.setUniform("material.SpecualrColor", currentModel.specularColor);
 		colorShader.setUniform("isTexture", currentModel.isTexture);
 		colorShader.setUniform("numOfBits", 256 - currentModel.numOfColorBits);
-		
+		colorShader.setUniform("mapNormal", currentModel.isNormalMap);
 
 		colorShader.setUniform("scale", scale);
 		colorShader.setUniform("modelTransformation", modelTransformation);
@@ -1177,11 +1179,13 @@ void Renderer::Render(const Scene& scene)
 
 		// Drag our model's faces (triangles) in fill mode
 		currentModel.texture.bind(0);
+		currentModel.nomralMap.bind(1);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glBindVertexArray(cur_vao);
 		glDrawArrays(GL_TRIANGLES, 0, currentModel.getVertexes().size());
 		glBindVertexArray(0);
 		currentModel.texture.unbind(0);
+		currentModel.nomralMap.unbind(1);
 	}
 
 	//PostProcessing();

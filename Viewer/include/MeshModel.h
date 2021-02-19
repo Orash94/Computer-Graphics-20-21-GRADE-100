@@ -42,10 +42,13 @@ public:
 
 	int isTexture = 0; // 0 - no texture, 1 - is texture.
 	Texture2D texture;
+	bool  isNormalMap = false;
+	Texture2D nomralMap;
 	void usePlanarMap();
 	void useCylindricalMap();
 	void useSphericalMap();
 	void LoadTextures(const char* path);
+	void LoadNormalMap(const char* path);
 
 	bool isToon;
 	int numOfColorBits = 255;

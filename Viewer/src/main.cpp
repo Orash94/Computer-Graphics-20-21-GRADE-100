@@ -923,9 +923,37 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 							if (ImGui::Button("Use Spherical Projection")) {
 								model1.useSphericalMap();
 							}
+							static bool  normalMapping = false;
+							ImGui::Checkbox("enable normal mapping", &normalMapping);
+							
+							if (normalMapping) {
+								if (ImGui::Button("Add Normal map")) {
+									nfdchar_t* outPath = NULL;
+									nfdresult_t result = NFD_OpenDialog("jpg", NULL, &outPath);
+									if (result == NFD_OKAY) {
+
+										//MeshModel& model = scene.GetActiveModel();
+										if (&model1 != nullptr) {
+
+											model1.LoadNormalMap(outPath);
+											model1.isNormalMap = true;
+										}
+										free(outPath);
+									}
+									else if (result == NFD_CANCEL) {
+									}
+									else {
+									}
+
+								}
+							}
+							else {
+								model1.isNormalMap = false;
+							}
 							
 						}
 						static bool toon = model1.isToon;
+						ImGui::Text("Toon shading:");
 						//if (ImGui::Checkbox("Toon Shading Effect", &toon)) {
 							ImGui::SliderInt("Number of color bits", &model1.numOfColorBits, 2, 255);
 							//model1.isToon = toon;
