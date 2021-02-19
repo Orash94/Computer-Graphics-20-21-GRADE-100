@@ -18,10 +18,6 @@ We initialize the  shaders and bind them to the current program,  we send the sc
 
 Vertex shader sends screen coordinates to fragment shader  that uses vTexCoord  to map the texture to the screen using textureLod().
 
-**reread and examine after project is done
-
-
-
 ### Vertex Shader Code
 
 ```glsl
@@ -44,6 +40,9 @@ uniform mat4 viewVolumeTransformation;
 uniform mat4 finalTransformation;
 uniform mat4 normalTransformation;
 
+uniform bool mapNormal;
+uniform sampler2D nomralMap;
+
 // These outputs will be available in the fragment shader as inputs
 out vec3 orig_fragPos;
 out vec4 fragPos;
@@ -59,7 +58,15 @@ void main()
 	fragPos = vec4(inverserCameraTransformation* modelTransformation * scale * vec4(pos, 1.0f));
 
 	//normal transformation
-	vec3 temp = vec3(inverserCameraTransformation* modelTransformation * scale * vec4(normal,1.0f));
+
+	vec3 newNormal; 
+	if(mapNormal){
+		newNormal = normalize(vec3(texture(nomralMap, fragTexCoords).rgb)*2 -1);
+	}else{
+		newNormal = normal;
+	}
+
+	vec3 temp = vec3(inverserCameraTransformation* modelTransformation * scale * vec4(newNormal,1.0f));
 	vec3 pos_zero= vec3(inverserCameraTransformation* modelTransformation * scale  * vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	fragNormal = vec4(temp -  pos_zero, 1.0f);
 
@@ -85,6 +92,7 @@ void main()
 struct Material
 {
 	sampler2D textureMap;
+	
 	// You can add more fields here...
 	// Such as:
 	//		1. diffuse/specular relections constants
@@ -123,6 +131,7 @@ in vec3 orig_fragPos;
 in vec4 fragPos;
 in vec4 fragNormal;
 
+
 // The final color of the fragment (pixel)
 out vec4 frag_color;
 
@@ -148,6 +157,14 @@ void main()
 	vec3 ID = vec3(0.0f);
 	vec3 IS = vec3(0.0f);
 	vec3 Reflection;
+
+	if(isTexture == 1){
+			vec3 textureColor = vec3(texture(material.textureMap, fragTexCoords));
+			AmbientColor = textureColor;
+			DiffuseColor= textureColor;
+			SpecualrColor = textureColor;
+	}
+
 	for (int i=0; i<lightsCount; i++) {
 		vec3 LightDirection ;
 		if(lightType[i] == vec4(0)){
@@ -173,21 +190,16 @@ void main()
 	}
 	if (lightsCount != 0){
 		frag_color = vec4(IA + ID + IS,1) ;
-		if(isTexture == 1){
-			vec3 textureColor = vec3(texture(material.textureMap, fragTexCoords));
-			vec4 AmbientColor = vec4(textureColor, 1.0f);
-			vec4 DiffuseColor = vec4(textureColor, 1.0f);
-			vec4 SpecualrColor = vec4(textureColor, 1.0f);
-			frag_color = vec4(textureColor, 1.0f);
-		}
 	}
 	else
 	{
-		frag_color = modelColor;
 		if(isTexture == 1){
 			vec3 textureColor = vec3(texture(material.textureMap, fragTexCoords));
 			frag_color = vec4(textureColor, 1.0f);
+		}else{
+			 frag_color = modelColor;
 		}
+		
 	}
 
 	frag_color = (round(frag_color*255 / numOfBits) *  numOfBits) / 255 ;
