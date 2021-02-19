@@ -1128,7 +1128,7 @@ void Renderer::Render(const Scene& scene)
 	colorShader.setUniform("lightSpecularColors", lightSpecularColors);
 	colorShader.setUniform("lightSpecularColorsAlpha", lightSpecularColorsAlpha);
 	colorShader.setUniform("material.textureMap", 0);
-	colorShader.setUniform("nomralMap", 1);
+	colorShader.setUniform("material.nomralMap", 1);
 
 	colorShader.setUniform("lightPos", lightPos);
 	colorShader.setUniform("lightsCount", lightCount);

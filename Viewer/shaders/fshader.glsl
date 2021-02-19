@@ -5,6 +5,7 @@
 struct Material
 {
 	sampler2D textureMap;
+	sampler2D nomralMap;
 	
 	// You can add more fields here...
 	// Such as:
@@ -36,6 +37,8 @@ uniform int numOfBits;
 uniform vec4 lightType [10];
 uniform int lightsCount;
 uniform int isTexture;
+uniform bool mapNormal;
+//uniform sampler2D nomralMap;
 
 in vec2 fragTexCoords;
 in vec3 orig_fragPos;
@@ -61,9 +64,13 @@ void main()
 	vec3 DiffuseColor = material.DiffuseColor;
 	vec3 SpecualrColor = material.SpecualrColor;
 
+	vec3 N;
+	if(mapNormal){
 
-
-	vec3 N = normalize(fragNormal.xyz / fragNormal.w);		//normal of point 
+		N = normalize(vec3(texture(material.nomralMap, fragTexCoords).rgb*2 - 1));
+	}
+	else
+		N = normalize(fragNormal.xyz / fragNormal.w);		//normal of point 
 
 	
 	vec3 IA = vec3(0.0f);
