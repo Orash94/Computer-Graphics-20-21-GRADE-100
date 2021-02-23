@@ -1,8 +1,9 @@
 #pragma once
 #include "Scene.h"
-
+#include "ShaderProgram.h"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include "Texture2D.h"
 
 class Renderer
 {
@@ -20,7 +21,9 @@ public:
 	void applyLinearFogging();
 	void applyExponentialFogging();
 	void applyExponentialSquaredFogging();
+	void loadShaders();
 	Scene& scene;
+	void LoadTextures();
 
 	
 private:
@@ -54,6 +57,7 @@ private:
 	void ScanConversionTrianglePhongShading(const glm::fvec3& v1, const glm::fvec3& v2, const glm::fvec3& v3, const  MeshModel& mesh, const Scene& scene , const Face& face);
 	glm::fmat4x4 afterProjectionMatrix;
 	
+
 	float* color_buffer_;
 	int viewport_width_;
 	int viewport_height_;
@@ -61,4 +65,13 @@ private:
 	glm::vec3** localColorBuffer;
 	GLuint gl_screen_tex_;
 	GLuint gl_screen_vtc_;
+
+
+	ShaderProgram colorShader;
+	ShaderProgram skyboxShader;
+	ShaderProgram cubeMapShader;
+	Texture2D textureSky;
+	GLuint cubeTex;
+	GLuint cubeVAO, cubeVBO;
+	GLuint skyboxVAO, skyboxVBO;
 };

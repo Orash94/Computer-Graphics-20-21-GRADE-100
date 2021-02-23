@@ -15,10 +15,10 @@ Renderer::Renderer(int viewport_width, int viewport_height ,  Scene& scene_) :
 	viewport_height_(viewport_height),
 	scene(scene_)
 {
-	InitOpenGLRendering();
-	CreateBuffers(viewport_width, viewport_height);
-	allocateZBuffer();
-	allocateColorBuffer();
+	//InitOpenGLRendering();
+	//CreateBuffers(viewport_width, viewport_height);
+	//allocateZBuffer();
+	//allocateColorBuffer();
 }
 
 Renderer::~Renderer()
@@ -296,24 +296,24 @@ void Renderer::DrawBoundingBox(MeshModel& model, const Scene& scene, glm::fmat4x
 
 void Renderer::allocateZBuffer()
 {
-	Zbuffer = new float* [viewport_width_];
+	/*Zbuffer = new float* [viewport_width_];
 	for (int i = 0; i < viewport_width_; i++)
 		Zbuffer[i] = new float[viewport_height_];
 
 	for (int i = 0; i < viewport_width_; i++)
 		for (int j = 0; j < viewport_height_; j++)
-			Zbuffer[i][j] = FLT_MAX;
+			Zbuffer[i][j] = FLT_MAX;*/
 }
 
 void Renderer::allocateColorBuffer()
 {
-	localColorBuffer = new glm::vec3* [viewport_width_];
+	/*localColorBuffer = new glm::vec3* [viewport_width_];
 	for (int i = 0; i < viewport_width_; i++)
 		localColorBuffer[i] = new glm::vec3[viewport_height_];
 
 	for (int i = 0; i < viewport_width_; i++)
 		for (int j = 0; j < viewport_height_; j++)
-			localColorBuffer[i][j] = glm::vec3(0,0,0);
+			localColorBuffer[i][j] = glm::vec3(0,0,0);*/
 }
 
 void Renderer::PostProcessing()
@@ -576,6 +576,144 @@ void Renderer::applyExponentialSquaredFogging()
 		}
 
 	}
+}
+
+void Renderer::loadShaders()
+{
+	
+	//.. / computergraphics2021 - or -and -abed/Viewer/shaders/
+	colorShader.loadShaders("vshader.glsl", "fshader.glsl");
+	skyboxShader.loadShaders("vshader_skybox.glsl", "fshader_skybox.glsl");
+	cubeMapShader.loadShaders("vshader_cubemap.glsl", "fshader_cubemap.glsl");
+
+}
+
+void Renderer::LoadTextures()
+{
+	GLfloat cubeVertices[] =
+	{
+		// Positions          // Texture Coords
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+	};
+
+	GLfloat skyboxVertices[] = {
+		// Positions
+		-1.0f,  1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		-1.0f,  1.0f, -1.0f,
+		1.0f,  1.0f, -1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		1.0f, -1.0f,  1.0f
+	};
+	
+	glGenVertexArrays(1, &cubeVAO);
+	glGenBuffers(1, &cubeVBO);
+	glBindVertexArray(cubeVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), &cubeVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	glBindVertexArray(0);
+
+
+	glGenVertexArrays(1, &skyboxVAO);
+	glGenBuffers(1, &skyboxVBO);
+	glBindVertexArray(skyboxVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+	glBindVertexArray(0);
+
+
+
+	std::vector<std::string> faces
+	{
+		"../computergraphics2021-or-and-abed/Data/posx.jpg",
+		"../computergraphics2021-or-and-abed/Data/negx.jpg",
+		"../computergraphics2021-or-and-abed/Data/posy.jpg",
+		"../computergraphics2021-or-and-abed/Data/negy.jpg",
+		"../computergraphics2021-or-and-abed/Data/posz.jpg",
+		"../computergraphics2021-or-and-abed/Data/negz.jpg"
+	};
+	cubeTex = textureSky.loadCubemap(faces);
 }
 
 
@@ -934,10 +1072,10 @@ void Renderer::DrawVerticesNormalPerFace(MeshModel& mesh, glm::fmat4x4 trasforma
 void Renderer::CreateBuffers(int w, int h)
 {
 	CreateOpenGLBuffer(); //Do not remove this line.
-	color_buffer_ = new float[3 * w * h];
-	allocateZBuffer();
-	allocateColorBuffer();
-	ClearColorBuffer(glm::vec3(0.0f, 0.0f, 0.0f));
+	//color_buffer_ = new float[3 * w * h];
+	//allocateZBuffer();
+	//allocateColorBuffer();
+	//ClearColorBuffer(glm::vec3(0.0f, 0.0f, 0.0f));
 }
 
 //##############################
@@ -1067,240 +1205,136 @@ void Renderer::ClearColorBuffer(const glm::vec3& color)
 
 void Renderer::Render(const Scene& scene)
 {
-	
-	int windowsWidth = viewport_width_;
-	int windowsHeight = viewport_height_;
+	int lightCount = scene.GetLightCount();
+	glm::vec3 lightAmbientColors[10];
+	glm::vec3 lightDiffuseColors[10];
+	glm::vec3 lightSpecularColors[10];
+	glm::vec4 lightSpecularColorsAlpha[10];
 
-	int centerX = windowsWidth / 2;
-	int centerY = windowsHeight / 2;
-
-	// updating camera params;
-	Camera& cam = scene.GetActiveCamera();
-	cam.right = (float)centerX;
-	cam.left = -(float)centerX;
-	cam.top = (float)centerY;
-	cam.bottom = -(float)centerY;
-	cam.aspectRatio = windowsWidth / windowsHeight;
-	if(cam.GetOrthographicOrPerspective()){
-		cam.SetViewVolumeCoordinates(cam.right, cam.left, cam.top, cam.bottom, cam.GetNear(), cam.GetFar());
-	}
-	else {
-		cam.SetPerspectiveData(cam.GetNear(), cam.GetFar(), cam.GetFovy(), cam.GetAspectRatio());
-	}
-	
+	glm::vec4 lightPos[10];
+	glm::vec4 lightType[10];
 
 
-	glm::fmat4x4 translateAfterProjection = Utils::TransformationTransition(glm::fvec3(1, 1, 0));
-	glm::fmat4x4 scaleAfterProjection = Utils::TransformationScale(glm::fvec3(centerX, centerY, 1));
-
-	glm::fmat4x4 AfterProjection = scaleAfterProjection * translateAfterProjection;
-	afterProjectionMatrix = AfterProjection;
-	if (scene.getShowAxis()) {
-		DrawLine(glm::fvec3(0, centerY, 0), glm::fvec3(windowsWidth, centerY, 0), glm::fvec3(0, 0, 0));
-		DrawLine(glm::fvec3(centerX, 0, 0), glm::fvec3(centerX, windowsHeight, 0), glm::fvec3(0, 0, 0));
-	}
-	
-	//rendering the MeshModels
-	if (scene.GetModelCount() > 0) {
-		for (int i = 0; i < scene.GetModelCount(); i++)
-		{
-			MeshModel& mesh = scene.GetModel(i);
-			float proportion = 300.f/mesh.getMaxDitancePoints();
-
-			
-			glm::fmat4x4 scale = Utils::TransformationScale(glm::fvec3(proportion, proportion, proportion));
-			glm::fmat4x4 translate = Utils::TransformationTransition(glm::fvec3(centerX, centerY, 0));
-
-			glm::fmat4x4 transformationMatrix = mesh.getTransformation();
+	Camera& currentcam = scene.GetActiveCamera();
+	glm::fmat4x4 inversercameratransformation = glm::lookAt(currentcam.getEye(), currentcam.getAt(), currentcam.getUp());
+	glm::fmat4x4 viewvolumetransformation = currentcam.GetViewTransformation();
+	glm::fmat4x4 camTransformation = viewvolumetransformation * inversercameratransformation;
 
 
-			glm::fmat4x4 finalTransformation =   transformationMatrix * scale   ;
+	//TODO figue out waht to do here
+	for (int i = 0; i < lightCount; ++i)
+	{
+		Light& currentLight = scene.GetLight(i);
+		glm::fmat4x4 lightTransformation = inversercameratransformation * currentLight.getTransformation();
 
-			//rendering active camera view
-			Camera& currentCam = scene.GetActiveCamera();
-			glm::fmat4x4 inverserCameraTransformation = glm::lookAt(currentCam.getEye(), currentCam.getAt(), currentCam.getUp());
-			glm::fmat4x4 viewVolumeTransformation= currentCam.GetViewTransformation();
+		// setup lights
+		if (i < lightCount) {
+			lightAmbientColors[i]= currentLight.ambientColor;
+			lightDiffuseColors[i] = currentLight.diffuseColor;
+			lightSpecularColors[i] = currentLight.specularColor;
+			lightSpecularColorsAlpha[i] = glm::fvec4(currentLight.alpha, currentLight.alpha, currentLight.alpha,1);
 
-			glm::fmat4x4 CameraTransformation = viewVolumeTransformation * inverserCameraTransformation;
-			finalTransformation = CameraTransformation * finalTransformation;
-			glm::mat4x4 normalMatrix = finalTransformation;
-			
-
-			mesh.normalTransformation = finalTransformation;
-			//transfer objects to center screen with transalte transformation
-			finalTransformation = AfterProjection * finalTransformation;
-			mesh.finalTransformation = finalTransformation;
-			//bounding box check
-
-			if (mesh.displayBoundingBox) {
-				DrawBoundingBox(mesh, scene, finalTransformation, glm::vec3(0, 0, 1));
+			if (scene.GetLight(i).getTypeOfLight()) {	//point
+				lightPos[i] = glm::vec4(Utils::applyTransformationToVector(glm::fvec3(0,0,0) , lightTransformation), 1);
+				lightType[i] = glm::vec4(0);
 			}
-
-			std::vector<Face> faces = mesh.getFaces();
-
-			std::vector<glm::vec3> verticesTransformation;
-			for (int j = 0; j < mesh.GetVerticesCount(); j++)
-			{
-				glm::fvec3  vertex = mesh.GetVertexAtIndex(j);
-				glm::fvec3 transformedVertex = Utils::applyTransformationToVector(vertex, finalTransformation); 
-				verticesTransformation.push_back(transformedVertex);
-			}
-
-			
-			//draw faces
-			for (int j = 0; j < mesh.GetFacesCount(); j++)
-			{
-				Face& face = faces[j];
-
-				glm::vec3 vectorArray[3];
-
-				//extract verices of face
-				for (int k = 0; k < 3; k++) {
-					int index = face.GetVertexIndex(k) - 1;
-					vectorArray[k] = verticesTransformation[index];
-				}
-
-				
-				glm::fvec3  faceNormal = DrawFaceNormal(mesh ,face, normalMatrix, finalTransformation, glm::vec3(1, 0, 1));
-				mesh.setFaceNormal(j ,faceNormal);
-				
-				
-				if (scene.GetActiveCamera().GetOrthographicOrPerspective() == false) {
-					glm::vec3 triangleCenter = (vectorArray[0] + vectorArray[1] + vectorArray[2]) / 3.0f;
-					glm::vec3 at = scene.GetActiveCamera().getAt();
-					float zAt = at.z;
-					glm::vec3 camCenter = scene.GetActiveCamera().getCenter();
-					if ((camCenter[2] + zAt * triangleCenter[2]) < (camCenter.z + zAt * scene.GetActiveCamera().GetNear())) {
-						continue;
-					}
-				}
-				DrawTriangle(vectorArray[0], vectorArray[1], vectorArray[2], mesh.GetColor(), mesh , scene , face);
-			}
-
-			//call function 
-			mesh.setVerteciesNormals();
-
-			//vertices normals check
-			if (mesh.displayVerticesNormals) {
-				DrawVerticesNormal(mesh, finalTransformation, glm::vec3(0, 0, 0.545), mesh.VerticesNormalsLength);
-			}
-
-			//vertices normals per face check
-			if (mesh.displayVerticesNormalsPerFace) {
-				DrawVerticesNormalPerFace(mesh, finalTransformation, glm::vec3(0, 0.545, 0.545), mesh.VerticesNormalsPerFaceLength);
-			}
-		}
-
-	}
-
-	//rendering the  camers to the screen
-	if (scene.GetCameraCount() > 0 ) {
-		for (int i = 0; i < scene.GetCameraCount(); i++) {
-
-			
-			Camera& tempCam = scene.GetCamera(i);
-			float proportion = 50.0f / tempCam.getMaxDitancePoints();
-
-			glm::fmat4x4 scale = Utils::TransformationScale(glm::fvec3(proportion, proportion, proportion));
-			glm::fmat4x4 translate = Utils::TransformationTransition(glm::fvec3(centerX, centerY, 0));
-
-			glm::fmat4x4 transformationMatrix;
-
-			//check if we are using LookAt or Transformation
-			if (tempCam.GetLookAtOrTransformation() == true) {
-				transformationMatrix = tempCam.getTransformation();
-			}
-			else {
-				transformationMatrix = glm::inverse(glm::lookAt(tempCam.getEye(), tempCam.getAt(), tempCam.getUp()));
-			}
-
-			glm::fmat4x4 finalTransformation =  transformationMatrix * scale;
-
-			
-
-			//rendering active camera view
-			Camera& currentCam = scene.GetActiveCamera();
-			glm::fmat4x4 inverserCameraTransformation = glm::lookAt(currentCam.getEye(), currentCam.getAt(), currentCam.getUp());
-			glm::fmat4x4 viewVolumeTransformation;
-			viewVolumeTransformation = currentCam.GetViewTransformation();
-			glm::fmat4x4 CameraTransformation = viewVolumeTransformation * inverserCameraTransformation;
-			finalTransformation =   CameraTransformation * finalTransformation;
-
-			tempCam.normalTransformation = finalTransformation;
-			finalTransformation = AfterProjection * finalTransformation;
-			tempCam.finalTransformation = finalTransformation;
-
-			
-			if (scene.GetActiveCameraIndex() == i) {
-				continue;
-			}
-			std::vector<Face> faces = tempCam.getFaces();
-
-			for (int j = 0; j < tempCam.GetFacesCount(); j++)
-			{
-				Face& face = faces[j];
-
-				glm::vec3 vectorArray[3];
-
-				for (int k = 0; k < 3; k++) {
-					int index = face.GetVertexIndex(k) - 1;
-					glm::vec3 v = tempCam.GetVertexAtIndex(index);
-					vectorArray[k] = Utils::applyTransformationToVector(v, finalTransformation);
-				}
-
-				DrawTriangle(vectorArray[0], vectorArray[1], vectorArray[2], glm::vec3(0.5f, 0.5f, 0.5f), tempCam, scene, face);
+			else {										//paraller 
+				lightPos[i] = glm::vec4(Utils::applyTransformationToNormal(glm::fvec3(0.0f, 1.0f, 0.0f), lightTransformation), 1.0f);
+				lightType[i] = glm::vec4(1);
 
 			}
 		}
 	}
 
-	//rendering the  lights to the screen
-	if (scene.GetLightCount() > 0 ) {
-		for (int i = 0; i < scene.GetLightCount(); i++) {
-			Light& tempLight = scene.GetLight(i);
-			float proportion = 50.0f / tempLight.getMaxDitancePoints();
+	
 
-			glm::fmat4x4 scale = Utils::TransformationScale(glm::fvec3(proportion, proportion, proportion));
-			glm::fmat4x4 translate = Utils::TransformationTransition(glm::fvec3(centerX, centerY, 0));
+	
+	
+	glDepthFunc(GL_LEQUAL); 
+	skyboxShader.use();
+	skyboxShader.setUniform("inverserCameraTransformation", inversercameratransformation);
+	skyboxShader.setUniform("viewVolumeTransformation", viewvolumetransformation);
+	skyboxShader.setUniform("skybox", 0);
+	textureSky.bind(cubeTex);
+	glBindVertexArray(skyboxVAO);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTex);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glBindVertexArray(0);
+	glDepthFunc(GL_LEQUAL); // Set depth function back to default
+	textureSky.unbind(cubeTex);
 
-			glm::fmat4x4 transformationMatrix = tempLight.getTransformation();
 
-			glm::fmat4x4 finalTransformation = transformationMatrix * scale;
+	colorShader.use();
 
-			if (scene.GetCamOrWorldView())  // rendering the active camera view
-			{
-				Camera& currentCam = scene.GetActiveCamera();
-				glm::fmat4x4 inverserCameraTransformation = glm::lookAt(currentCam.getEye(), currentCam.getAt(), currentCam.getUp());
-				glm::fmat4x4 viewVolumeTransformation;
+	GLuint cur_vao;
+	GLuint cur_vbo;
 
-				viewVolumeTransformation = currentCam.GetViewTransformation();
-				glm::fmat4x4 CameraTransformation = viewVolumeTransformation * inverserCameraTransformation;
-				finalTransformation = CameraTransformation * finalTransformation;
-			}
-			tempLight.normalTransformation = finalTransformation;
-			finalTransformation = AfterProjection * finalTransformation;
-			tempLight.finalTransformation = finalTransformation;
-			
-			std::vector<Face> faces = tempLight.getFaces();
+	colorShader.setUniform("lightAmbientColors", lightAmbientColors);
+	colorShader.setUniform("lightDiffuseColors", lightDiffuseColors);
+	colorShader.setUniform("lightSpecularColors", lightSpecularColors);
+	colorShader.setUniform("lightSpecularColorsAlpha", lightSpecularColorsAlpha);
+	colorShader.setUniform("material.textureMap", 0);
+	colorShader.setUniform("material.nomralMap", 1);
+	colorShader.setUniform("material.skybox", 0);
 
-			for (int j = 0; j < tempLight.GetFacesCount(); j++)
-			{
-				Face& face = faces[j];
+	colorShader.setUniform("lightPos", lightPos);
+	colorShader.setUniform("lightsCount", lightCount);
+	colorShader.setUniform("lightType", lightType);
+	int modelCount = scene.GetModelCount();
+	for (int currentModelIndex = 0; currentModelIndex < modelCount; currentModelIndex++)
+	{
+		MeshModel& currentModel = scene.GetModel(currentModelIndex);
 
-				glm::vec3 vectorArray[3];
+		//scalling model to fit screen
+		float proportion = 0.5 / currentModel.getMaxDitancePoints();
+		glm::fmat4x4 scale = Utils::TransformationScale(glm::fvec3(proportion, proportion, proportion));
 
-				for (int k = 0; k < 3; k++) {
-					int index = face.GetVertexIndex(k) - 1;
-					glm::vec3 v = tempLight.GetVertexAtIndex(index);
-					vectorArray[k] = Utils::applyTransformationToVector(v, finalTransformation);
-				}
+		// second  multiplying with inverse(worldTransformation) * objectTransformation
+		glm::fmat4x4 modelTransformation = currentModel.getTransformation();
 
-				DrawTriangle(vectorArray[0], vectorArray[1], vectorArray[2], glm::vec3(1, 1, 1) , tempLight, scene , face);
+		//rendering active camera view
+		Camera& currentCam = scene.GetActiveCamera();
+		glm::fmat4x4 inverserCameraTransformation = glm::lookAt(currentCam.getEye(), currentCam.getAt(), currentCam.getUp());
+		glm::fmat4x4 viewVolumeTransformation= currentCam.GetViewTransformation();
 
-			}
-		}
+
+		glm::fmat4x4 tmpTransformation = viewVolumeTransformation * inverserCameraTransformation * modelTransformation * scale;
+
+		glm::vec3 fsEye = Utils::applyTransformationToVector(scene.GetActiveCamera().getEye(), tmpTransformation);
+
+		colorShader.setUniform("eye",fsEye);
+		colorShader.setUniform("finalTransformation", tmpTransformation);
+		colorShader.setUniform("normalTransformation", tmpTransformation);
+		colorShader.setUniform("modelColor", glm::vec4(currentModel.GetColor(), 1.0f));
+		colorShader.setUniform("material.AmbientColor", currentModel.ambientColor);
+		colorShader.setUniform("material.DiffuseColor", currentModel.diffuseColor);
+		colorShader.setUniform("material.SpecualrColor", currentModel.specularColor);
+		colorShader.setUniform("isTexture", currentModel.isTexture);
+		colorShader.setUniform("numOfBits", 256 - currentModel.numOfColorBits);
+		colorShader.setUniform("mapNormal", currentModel.isNormalMap);
+
+		colorShader.setUniform("scale", scale);
+		colorShader.setUniform("modelTransformation", modelTransformation);
+		colorShader.setUniform("inverserCameraTransformation", inverserCameraTransformation);
+		colorShader.setUniform("viewVolumeTransformation", viewVolumeTransformation);
+
+		cur_vao = currentModel.getVAO();
+		cur_vbo = currentModel.getVBO();
+		
+
+		// Drag our model's faces (triangles) in fill mode
+		currentModel.texture.bind(0);
+		//currentModel.nomralMap.bind(1);
+		glBindVertexArray(currentCam.getVAO());
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glBindVertexArray(scene.GetActiveModel().getVAO());
+		glDrawArrays(GL_TRIANGLES, 0, currentModel.getVertexes().size());
+		glBindVertexArray(0);
+		currentModel.texture.unbind(0);
+		//currentModel.nomralMap.unbind(1);
 	}
-	PostProcessing();
+
+	//PostProcessing();
 	
 }
 
@@ -1318,6 +1352,6 @@ void Renderer::SetViewport(int width, int height)
 {
 	viewport_height_ = height;
 	viewport_width_ = width;
-	CreateBuffers(width, height);
+	//CreateBuffers(width, height);
 }
 

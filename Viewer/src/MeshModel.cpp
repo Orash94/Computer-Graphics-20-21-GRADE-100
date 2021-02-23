@@ -4,11 +4,12 @@
 #include <iostream>
 #include <iomanip>
 
-MeshModel::MeshModel(std::vector<Face> faces, std::vector<glm::vec3> vertices, std::vector<glm::vec3> normals, const std::string& model_name) :
+MeshModel::MeshModel(std::vector<Face> faces, std::vector<glm::vec3> vertices, std::vector<glm::vec3> normals, std::vector<glm::vec2> textureCoords,const std::string& model_name) :
 	faces_(faces),
 	vertices_(vertices),
 	normals_(normals),
-	model_name_(model_name)
+	model_name_(model_name),
+	textureCoords_(textureCoords)
 {
 	ObjectTransformation = Utils::getIdMat();
 	WorldTransformation = Utils::getIdMat();
@@ -22,12 +23,166 @@ MeshModel::MeshModel(std::vector<Face> faces, std::vector<glm::vec3> vertices, s
 	setModelInMiddle();
 	setFrame(glm::fvec3(0.0f, 0.0f, 0.0f), Utils::getIdMat());
 
-	//outputFacesAndVertices();
+	modelVertices.reserve(3 * faces.size());
+	for (int i = 0; i < faces.size(); i++)
+	{
+		Face currentFace = faces.at(i);
+		for (int j = 0; j < 3; j++)
+		{
+			int vertexIndex = currentFace.GetVertexIndex(j) - 1;
+
+			Vertex vertex;
+			vertex.position = vertices_[vertexIndex];
+
+			int vertexNormalIndex = currentFace.GetNormalIndex(j) -1;
+			vertex.normal = normals[vertexNormalIndex];
+
+			if (textureCoords.size() > 0)
+			{
+				int textureCoordsIndex = currentFace.GetTextureIndex(j) - 1;
+				vertex.textureCoords = textureCoords[textureCoordsIndex];
+			}
+			else {
+				vertex.textureCoords = glm::vec2(vertex.position[0], vertex.position[1]);
+			}
+
+			modelVertices.push_back(vertex);
+		}
+	}
+
+
 	
+	k1 = 1.0f;
+	k2 = 1.0f;
+	k3 = 1.0f;
+	k4 = 1.0f;
+
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+	glBufferData(GL_ARRAY_BUFFER, modelVertices.size() * sizeof(Vertex), &modelVertices[0], GL_STATIC_DRAW);
+
+	// Vertex Positions
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+
+	// Normals attribute
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
+
+	// texture attribute #TODO
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(6 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);
+
+
+
+	// unbind
+	glBindVertexArray(0);
+
+
 }
+
+MeshModel::MeshModel(const MeshModel& ref):
+	faces_(ref.getFaces()),
+	vertices_(ref.getVertices()),
+	normals_(ref.getNormals()),
+	model_name_(ref.GetModelName()),
+	textureCoords_(ref.getTextureCoordinates())
+{
+	ObjectTransformation = Utils::getIdMat();
+	WorldTransformation = Utils::getIdMat();
+
+	this->ambientColor = ref.ambientColor;
+	this->diffuseColor = ref.diffuseColor;
+	this->color = ref.GetColor();
+	this->center = ref.getCenter();
+	this->ObjectTransformation = ref.getObjectTransformation();
+	this->WorldTransformation = ref.getWorldTransformation();
+	this->scale = ref.scale;
+	this->WorldScale = ref.WorldScale;
+	this->Rotate = ref.Rotate;
+	this->WorldRotate = ref.WorldRotate;
+	this->Translate = ref.Translate;
+	this->WorldTranslate = ref.WorldTranslate;
+	color = glm::vec3(1, 1, 1);
+	ambientColor = glm::vec3(0, 0, 0);
+	diffuseColor = glm::vec3(0, 0, 0);
+	specularColor = glm::vec3(1, 1, 1);
+
+	std::vector<Face> faces = ref.getFaces();
+	std::vector<glm::vec3> normals = ref.getNormals();
+	std::vector<glm::vec2> textureCoords = ref.getTextureCoordinates();
+	setModelInMiddle();
+	setFrame(glm::fvec3(0.0f, 0.0f, 0.0f), Utils::getIdMat());
+
+	modelVertices.reserve(3 * faces.size());
+	for (int i = 0; i < faces.size(); i++)
+	{
+		Face currentFace = faces.at(i);
+		for (int j = 0; j < 3; j++)
+		{
+			int vertexIndex = currentFace.GetVertexIndex(j) - 1;
+
+			Vertex vertex;
+			vertex.position = vertices_[vertexIndex];
+
+			int vertexNormalIndex = currentFace.GetNormalIndex(j) - 1;
+			vertex.normal = normals[vertexNormalIndex];
+
+			if (textureCoords.size() > 0)
+			{
+				int textureCoordsIndex = currentFace.GetTextureIndex(j) - 1;
+				vertex.textureCoords = textureCoords[textureCoordsIndex];
+			}
+			else {
+				vertex.textureCoords = glm::vec2(0, 0);
+			}
+
+			modelVertices.push_back(vertex);
+		}
+	}
+
+
+	//dont know aht is this for
+	k1 = 1.0f;
+	k2 = 1.0f;
+	k3 = 1.0f;
+	k4 = 1.0f;
+
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+	glBufferData(GL_ARRAY_BUFFER, modelVertices.size() * sizeof(Vertex), &modelVertices[0], GL_STATIC_DRAW);
+
+	// Vertex Positions
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+
+	// Normals attribute
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
+
+	// texture attribute #TODO
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(6 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);
+
+
+
+	// unbind
+	glBindVertexArray(0);
+}
+
 
 MeshModel::~MeshModel()
 {
+	glDeleteVertexArrays(1, &vao);
+	glDeleteBuffers(1, &vbo);
 }
 
 void MeshModel::SetColor(const glm::vec3 _color)
@@ -43,6 +198,21 @@ glm::vec3 MeshModel::GetColor() const
 const Face& MeshModel::GetFace(int index) const
 {
 	return faces_[index];
+}
+
+std::vector<glm::vec3> MeshModel::getVertices() const
+{
+	return vertices_;
+}
+
+std::vector<glm::vec2> MeshModel::getTextureCoordinates() const
+{
+	return textureCoords_;
+}
+
+std::vector<glm::vec3> MeshModel::getNormals() const
+{
+	return normals_;
 }
 
 int MeshModel::GetFacesCount() const
@@ -65,6 +235,60 @@ const glm::vec3& MeshModel::GetVertexAtIndex(int i) const
 {
 	return vertices_[i];
 }
+
+void MeshModel::usePlanarMap()
+{
+	for (Vertex& vertex : modelVertices) {
+		vertex.textureCoords = glm::vec2(vertex.position[0], vertex.position[1]);	
+	}
+	glBindVertexArray(getVAO());
+	glBindBuffer(GL_VERTEX_ARRAY, getVBO());
+	glBufferSubData(GL_ARRAY_BUFFER, 0, modelVertices.size() * sizeof(Vertex), &modelVertices[0]);
+	glBindVertexArray(0);
+}
+
+void MeshModel::useCylindricalMap()
+{
+	float pi = 3.14159265359;
+	float phi, theta;
+	
+	for (Vertex& vertex : modelVertices) {
+		phi = std::atan2(vertex.position[0] , vertex.position[1]);
+		theta = std::atan2(vertex.position[0] , vertex.position[2]);
+		vertex.textureCoords = glm::vec2(phi, theta);
+	}
+	glBindVertexArray(getVAO());
+	glBindBuffer(GL_VERTEX_ARRAY, getVBO());
+	glBufferSubData(GL_ARRAY_BUFFER, 0, modelVertices.size() * sizeof(Vertex), &modelVertices[0]);
+	glBindVertexArray(0);
+}
+
+void MeshModel::useSphericalMap()
+{
+	float pi = 3.14159265359;
+
+	for (Vertex& vertex : modelVertices) {
+		vertex.textureCoords = glm::vec2(vertex.position[0] / (1 - vertex.position[2]), vertex.position[1] / (1 - vertex.position[2]));
+	}
+	glBindVertexArray(getVAO());
+	glBindBuffer(GL_VERTEX_ARRAY, getVBO());
+	glBufferSubData(GL_ARRAY_BUFFER, 0, modelVertices.size() * sizeof(Vertex), &modelVertices[0]);
+	glBindVertexArray(0);
+}
+
+void MeshModel::LoadTextures(const char* path)
+{
+	if (!(texture.loadTexture(path, true)))
+		texture.loadTexture(path, true);
+}
+
+void MeshModel::LoadNormalMap(const char* path)
+{
+	if (!(nomralMap.loadTexture(path, true)))
+		nomralMap.loadTexture(path, true);
+}
+
+
 
 
 void MeshModel::setFaceNormal(int index, const glm::fvec3 normal)
@@ -172,6 +396,7 @@ glm::fmat4x4 MeshModel::getTransformation() const
 {
 	return glm::inverse(getWorldTransformation()) * getObjectTransformation();
 }
+
 
 
 void MeshModel:: setMinMaxVertices() {
@@ -360,6 +585,21 @@ const glm::fmat3x3& MeshModel::getCoordinateSystem()
 glm::fmat4x4 MeshModel::getNormalTransformation() const
 {
 	return normalTransformation;
+}
+
+GLuint MeshModel::getVBO() const
+{
+	return vbo;
+}
+
+GLuint MeshModel::getVAO() const
+{
+	return vao;
+}
+
+std::vector<Vertex> MeshModel::getVertexes() const
+{
+	return modelVertices;
 }
 
 

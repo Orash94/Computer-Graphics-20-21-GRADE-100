@@ -27,6 +27,7 @@ std::shared_ptr<MeshModel> Utils::LoadMeshModel(const std::string& filePath)
 	std::vector<Face> faces;
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;
+	std::vector<glm::vec2> textureCoords;
 	std::ifstream ifile(filePath.c_str());
 
 	// while not end of file
@@ -53,7 +54,7 @@ std::shared_ptr<MeshModel> Utils::LoadMeshModel(const std::string& filePath)
 		}
 		else if (lineType == "vt")
 		{
-			// TODO: Handle texture coordinates
+			textureCoords.push_back(Utils::Vec2fFromStream(issLine));
 		}
 		else if (lineType == "f")
 		{
@@ -69,7 +70,7 @@ std::shared_ptr<MeshModel> Utils::LoadMeshModel(const std::string& filePath)
 		}
 	}
 
-	return std::make_shared<MeshModel>(faces, vertices, normals, Utils::GetFileName(filePath));
+	return std::make_shared<MeshModel>(faces, vertices, normals, textureCoords, Utils::GetFileName(filePath));
 }
 
 std::string Utils::GetFileName(const std::string& filePath)
@@ -204,25 +205,25 @@ glm::fmat4x4 Utils::TransformationPerspective(const float d)
 	return glm::transpose(glm::fmat4x4(vec1, vec2, vec3, vec4));
 }
 
-glm::fmat4x4 Utils::SetViewVolumeOrthographicTransformation(const float right, const float left, const float top, const float bottom, const float near, const float far)
-{
-	glm::fvec4 vec1 = glm::fvec4(2.0f/(right-left), 0, 0, -((right+left)/(right - left)));
-	glm::fvec4 vec2 = glm::fvec4(0, 2.0f/(top-bottom), 0, -((top + bottom) / (top - bottom)));
-	glm::fvec4 vec3 = glm::fvec4(0, 0, 2/(near - far), -((far + near) / (far - near)));
-	glm::fvec4 vec4 = glm::fvec4(0, 0, 0, 1.0f);
+//glm::fmat4x4 Utils::SetViewVolumeOrthographicTransformation(const float right, const float left, const float top, const float bottom, const float near, const float far)
+//{
+//	glm::fvec4 vec1 = glm::fvec4(2.0f/(right-left), 0, 0, -((right+left)/(right - left)));
+//	glm::fvec4 vec2 = glm::fvec4(0, 2.0f/(top-bottom), 0, -((top + bottom) / (top - bottom)));
+//	glm::fvec4 vec3 = glm::fvec4(0, 0, 2/(near - far), -((far + near) / (far - near)));
+//	glm::fvec4 vec4 = glm::fvec4(0, 0, 0, 1.0f);
+//
+//	return glm::transpose(glm::fmat4x4(vec1, vec2, vec3, vec4));
+//}
 
-	return glm::transpose(glm::fmat4x4(vec1, vec2, vec3, vec4));
-}
-
-glm::fmat4x4 Utils::SetViewVolumePerspectiveTransformation(const float right, const float left, const float top, const float bottom, const float near, const float far)
-{
-	glm::fvec4 vec1 = glm::fvec4(2*near/(right-left), 0, (right+left)/(right-left), 0);
-	glm::fvec4 vec2 = glm::fvec4(0, 2*near/(top - bottom), (top + bottom)/(top - bottom), 0);
-	glm::fvec4 vec3 = glm::fvec4(0, 0, -1*((far+near)/(far-near)), -1*((2*far*near)/(far-near)));
-	glm::fvec4 vec4 = glm::fvec4(0, 0, -1.0f, 0);
-
-	return glm::transpose(glm::fmat4x4(vec1, vec2, vec3, vec4));
-}
+//glm::fmat4x4 Utils::SetViewVolumePerspectiveTransformation(const float right, const float left, const float top, const float bottom, const float near, const float far)
+//{
+//	glm::fvec4 vec1 = glm::fvec4(2*near/(right-left), 0, (right+left)/(right-left), 0);
+//	glm::fvec4 vec2 = glm::fvec4(0, 2*near/(top - bottom), (top + bottom)/(top - bottom), 0);
+//	glm::fvec4 vec3 = glm::fvec4(0, 0, -1*((far+near)/(far-near)), -1*((2*far*near)/(far-near)));
+//	glm::fvec4 vec4 = glm::fvec4(0, 0, -1.0f, 0);
+//
+//	return glm::transpose(glm::fmat4x4(vec1, vec2, vec3, vec4));
+//}
 
 glm::fmat4x4 Utils::getIdMat()
 {

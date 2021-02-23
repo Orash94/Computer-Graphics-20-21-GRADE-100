@@ -22,8 +22,8 @@ public:
 
 	static glm::fmat4x4 TransformationOrthographic();
 	static glm::fmat4x4 TransformationPerspective(const float d);
-	static glm::fmat4x4 SetViewVolumeOrthographicTransformation(const float right, const float left, const float top, const float bottom, const float near, const float far);
-	static glm::fmat4x4 SetViewVolumePerspectiveTransformation(const float right, const float left, const float top, const float bottom, const float near, const float far);
+	//static glm::fmat4x4 SetViewVolumeOrthographicTransformation(const float right, const float left, const float top, const float bottom, const float near, const float far);
+	//static glm::fmat4x4 SetViewVolumePerspectiveTransformation(const float right, const float left, const float top, const float bottom, const float near, const float far);
 	static glm::fvec3 Homogeneous2Euclidean(const glm::fvec4 vec);
 	static glm::fvec4 Euclidean2Homogeneous(const glm::fvec3 vec);
 	static glm::fmat4x4 Utils::getIdMat();

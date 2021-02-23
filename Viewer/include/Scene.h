@@ -29,7 +29,7 @@ public:
 
 	void SetActiveCameraIndex(int index);
 	int GetActiveCameraIndex() const;
-
+	bool isEnv = false;
 	void SetActiveModelIndex(int index);
 	int GetActiveModelIndex() const;
 
@@ -47,7 +47,6 @@ public:
 	bool getShowAxis() const ;
 
 	void setShowAxis(bool show);
-	bool showAxis;
 
 	void deleteActiveCamera();
 	void deleteActiveModel();

@@ -9,6 +9,9 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
+
+#include "ShaderProgram.h"
+#include "InitShader.h"
 #include "Renderer.h"
 #include "Scene.h"
 #include "Utils.h"
@@ -39,7 +42,8 @@ std::shared_ptr<Camera> MakeCamera();
 std::shared_ptr<Camera> MakeDefaultCamera();
 std::shared_ptr<Light> MakePointLight();
 std::shared_ptr<Light> MakeParallelLight();
-void normalizeColors(Renderer render);
+
+
 void testing();
 /**
  * Function implementation
@@ -61,30 +65,56 @@ int main(int argc, char **argv)
 	glfwMakeContextCurrent(window);
 	glfwGetFramebufferSize(window, &frameBufferWidth, &frameBufferHeight);
 
-	Scene scene = Scene();
+	glViewport(0,0,1000,1000);
 
+	Scene scene = Scene();
 	//setting up default camera
 	scene.AddCamera(MakeDefaultCamera());
 	scene.SetActiveCameraIndex(0);
+	
 
-	Renderer renderer = Renderer(frameBufferWidth, frameBufferHeight ,scene);
 
+	Renderer& renderer = Renderer(frameBufferWidth, frameBufferHeight ,scene);
+	renderer.loadShaders();
+	renderer.LoadTextures();
 	
 	
 	ImGuiIO& io = SetupDearImgui(window);
 	glfwSetScrollCallback(window, ScrollCallback);
-	
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+
+	 
+
     while (!glfwWindowShouldClose(window))
     {
-		//Main Loop
-        glfwPollEvents();
-		StartFrame();
+		// Poll and process events
+		glfwPollEvents();
+
+		// Imgui stuff
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
 		DrawImguiMenus(io, scene);
-		RenderFrame(window, scene, renderer, io);
+		ImGui::Render();
+
+
+		// Clear the screen and depth buffer
+		glClearColor(scene.backgroundColor[0], scene.backgroundColor[1], scene.backgroundColor[2], 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// Render scene
+		renderer.Render(scene);
+
+		// Imgui stuff
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		// Swap front and back buffers
+		glfwSwapBuffers(window);
     }
 
 	Cleanup(window);
-    return 0;
+	return 0;
 }
 
 static void GlfwErrorCallback(int error, const char* description)
@@ -135,6 +165,8 @@ void StartFrame()
 
 void RenderFrame(GLFWwindow* window, Scene& scene, Renderer& renderer, ImGuiIO& io)
 {
+	
+
 	ImGui::Render();
 	int frameBufferWidth, frameBufferHeight;
 	glfwMakeContextCurrent(window);
@@ -144,10 +176,10 @@ void RenderFrame(GLFWwindow* window, Scene& scene, Renderer& renderer, ImGuiIO& 
 	{
 		// TODO: Set new aspect ratio
 		ChangeFrameSize(frameBufferWidth, frameBufferHeight, renderer);
+		scene.GetActiveCamera().aspectRatio = frameBufferWidth / frameBufferHeight;
 		//renderer.SetViewport(frameBufferWidth, frameBufferHeight);
+		
 	}
-
-
 
 	if (!io.WantCaptureKeyboard)
 	{
@@ -167,9 +199,8 @@ void RenderFrame(GLFWwindow* window, Scene& scene, Renderer& renderer, ImGuiIO& 
 			// Left mouse button is down
 		}
 	}
-	renderer.ClearColorBuffer(scene.backgroundColor);
+
 	renderer.Render(scene);
-	renderer.SwapBuffers();
 
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	glfwMakeContextCurrent(window);
@@ -184,7 +215,8 @@ void ChangeFrameSize(int width, int height, Renderer& renderer)
 
 	glViewport(0, 0, windowWidth, windowHeight);
 	renderer.SetViewport(windowWidth, windowHeight);
-	
+
+
 }
 
 void Cleanup(GLFWwindow* window)
@@ -209,14 +241,14 @@ std::shared_ptr<Camera> MakeCamera() {
 std::shared_ptr<Camera> MakeDefaultCamera()
 {
 	MeshModel mesh = MeshModel(*(Utils::LoadMeshModel("../computergraphics2021-or-and-abed/Data/camera.obj")));
-	glm::vec3 nEye = glm::vec3(0, 0, 250);
+	glm::vec3 nEye = glm::vec3(0, 0, 1);
 	glm::vec3 nAt = glm::vec3(0, 0, -1);
 	glm::vec3 nUp = glm::vec3(0, 1, 0);
 	auto cam = std::make_shared<Camera>(mesh, nEye, nAt, nUp);
 
 	glm::fvec3 scale = glm::fvec3(1,1,1);
 	glm::fvec3 Rotate = glm::fvec3(0, 0, 0);
-	glm::fvec3 Translate = glm::fvec3(0, 0, 250);
+	glm::fvec3 Translate = glm::fvec3(0, 0, 1);
 
 	cam->setObjectTransformationUpdates(scale, Rotate, Translate);
 	return cam;
@@ -286,6 +318,7 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 			ImGui::EndMenu();
 		}
 
+
 		if (ImGui::BeginMenu("Add"))
 		{
 			if (ImGui::MenuItem("Add Object", "CTRL+O"))
@@ -351,7 +384,6 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 			light_selected = -1;
 		}
 	}
-	ImGui::Checkbox("Display Axis", &scene.showAxis);
 
 	ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
 
@@ -362,9 +394,15 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 			//---------------------------------Scene --------------------------
 			if (ImGui::CollapsingHeader("Scene Actions", ImGuiTreeNodeFlags_None))
 			{
+				if (ImGui::Button("enable environment mapping")) {
+					//model1.LoadEnvironmentMap(" ");
+					scene.isEnv = true;
+				}
 				ImGui::Checkbox("WireFram", &scene.wireFrame);
 				ImGui::ColorEdit3("background color", (float*)&scene.backgroundColor);
+				
 				if (ImGui::Button("Reset color")) {
+					
 					scene.backgroundColor = glm::fvec3(0.8f, 0.8f, 0.8f);
 				}
 				if (ImGui::CollapsingHeader("Post Proccessing ", ImGuiTreeNodeFlags_None))
@@ -545,14 +583,14 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 				
 						ImGui::Checkbox("symmetric", &symmetriceye);
 						if (symmetriceye) {
-							ImGui::SliderFloat("Eye", &vecEye[0], -minWindow, minWindow);
+							ImGui::SliderFloat("Eye", &vecEye[0], -1 , 1);
 							vecEye[1]=vecEye[0];
 							vecEye[2] = vecEye[0];
 						}
 						else {
-							ImGui::SliderFloat("Eye X", &vecEye[0], -windowsWidth, windowsWidth);
-							ImGui::SliderFloat("Eye Y", &vecEye[1], -windowHeight, windowHeight);
-							ImGui::SliderFloat("Eye Z", &vecEye[2], -maxWindow, maxWindow);
+							ImGui::SliderFloat("Eye X", &vecEye[0], -1 , 1);
+							ImGui::SliderFloat("Eye Y", &vecEye[1], -1 , 1);
+							ImGui::SliderFloat("Eye Z", &vecEye[2], -1 , 1);
 						}
 			
 				
@@ -561,9 +599,9 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 							vecEye[1] = 0.f;
 							vecEye[2] = 0.f;
 						}
-						ImGui::SliderFloat("at X", &vecAt[0], -windowsWidth, windowsWidth);
-						ImGui::SliderFloat("at Y", &vecAt[1], -windowHeight, windowHeight);
-						ImGui::SliderFloat("at Z", &vecAt[2], -maxWindow, maxWindow);
+						ImGui::SliderFloat("at X", &vecAt[0], -1 , 1);
+						ImGui::SliderFloat("at Y", &vecAt[1], -1 , 1);
+						ImGui::SliderFloat("at Z", &vecAt[2], -1 , 1);
 						if (ImGui::Button("Reset at")) {
 							vecAt[0] = 0.f;
 							vecAt[1] = 0.f;
@@ -604,8 +642,8 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 							ImGui::SliderFloat(":Left ", &nLeft,  -1 , 0.0f);
 							ImGui::SliderFloat(" :Top ", &nTop, 0.0f, 1.0f);
 							ImGui::SliderFloat(" :Bottom", &nBottom, -1, 0.0f);
-							ImGui::SliderFloat(" :Near: ", &nNear , 1.0f, 20.f);
-							ImGui::SliderFloat(" :Far: ", &nFar, 5.0f, 2000.0f);
+							ImGui::SliderFloat(" :Near: ", &nNear ,0.1f, 0.1f);
+							ImGui::SliderFloat(" :Far: ", &nFar, 0.5, 2000.0f);
 
 							cam.SetViewVolumeCoordinates(nRight, nLeft, nTop, nBottom, nNear, nFar);
 					
@@ -616,10 +654,10 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 							nNear = cam.GetNear();
 							nFar = cam.GetFar();
 							nFovy = cam.GetFovy();
-							nAspectRatio = windowsWidth / windowHeight;
+							nAspectRatio = windowsWidth / windowsHeight;
 							nZoom = cam.GetZoom();
 
-							ImGui::SliderFloat(" :Near ", &nNear,0.1f, 400.0f);
+							ImGui::SliderFloat(" :Near ", &nNear,0.1f, 0.1f);
 							ImGui::SliderFloat(" :Far ", &nFar, 10.0f, 2500.0f);
 							ImGui::SliderFloat(":Angle of Field of View Y ", &nFovy,0.001f, 3.14f);
 							ImGui::SliderFloat(" :Width", &nAspectRatio, 0.1f, 100.0f);
@@ -650,9 +688,9 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 						}
 						if (ImGui::CollapsingHeader("Translating", ImGuiTreeNodeFlags_None))
 						{
-							ImGui::SliderFloat("Translate X", &Translate[0], -windowsWidth, windowsWidth);
-							ImGui::SliderFloat("Translate Y", &Translate[1], -windowsHeight, windowsHeight);
-							ImGui::SliderFloat("Translate Z", &Translate[2], -maxWindow, maxWindow);
+							ImGui::SliderFloat("Translate X", &Translate[0], -1, 1);
+							ImGui::SliderFloat("Translate Y", &Translate[1], -1, 1);
+							ImGui::SliderFloat("Translate Z", &Translate[2], -1, 1);
 							if (ImGui::Button("Reset trasnalte")) {
 								Translate = glm::vec3(0.0f, 0.0f, 0.0f);
 							}
@@ -680,9 +718,9 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 						}
 						if (ImGui::CollapsingHeader("Translating", ImGuiTreeNodeFlags_None))
 						{
-							ImGui::SliderFloat("Translate X", &worldTranslate[0], -windowsWidth, windowsWidth);
-							ImGui::SliderFloat("Translate Y", &worldTranslate[1], -windowsHeight, windowsHeight);
-							ImGui::SliderFloat("Translate Z", &worldTranslate[2], -maxWindow, maxWindow);
+							ImGui::SliderFloat("Translate X", &worldTranslate[0], -1, 1);
+							ImGui::SliderFloat("Translate Y", &worldTranslate[1], -1, 1);
+							ImGui::SliderFloat("Translate Z", &worldTranslate[2], -1, 1);
 							if (ImGui::Button("Reset Translating")) {
 								worldTranslate = glm::vec3(0.0f, 0.0f, 0.0f);
 							}
@@ -781,9 +819,9 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 						}
 						if (ImGui::CollapsingHeader("Translating", ImGuiTreeNodeFlags_None))
 						{
-							ImGui::SliderFloat("Translate X", &Translate[0], -windowsWidth, windowsWidth);
-							ImGui::SliderFloat("Translate Y", &Translate[1], -windowsHeight, windowsHeight);
-							ImGui::SliderFloat("Translate Z", &Translate[2], -maxWindow, maxWindow);
+							ImGui::SliderFloat("Translate X", &Translate[0], -1, 1);
+							ImGui::SliderFloat("Translate Y", &Translate[1], -1, 1);
+							ImGui::SliderFloat("Translate Z", &Translate[2], -1, 1);
 							if (ImGui::Button("Reset trasnalte")) {
 								Translate = glm::vec3(0.0f, 0.0f, 0.0f);
 							}
@@ -831,9 +869,9 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 						}
 						if (ImGui::CollapsingHeader("Translating", ImGuiTreeNodeFlags_None))
 						{
-							ImGui::SliderFloat("Translate X", &worldTranslate[0], -windowsWidth, windowsWidth);
-							ImGui::SliderFloat("Translate Y", &worldTranslate[1], -windowsHeight, windowsHeight);
-							ImGui::SliderFloat("Translate Z", &worldTranslate[2], -maxWindow, maxWindow);
+							ImGui::SliderFloat("Translate X", &worldTranslate[0], -1, 1);
+							ImGui::SliderFloat("Translate Y", &worldTranslate[1], -1, 1);
+							ImGui::SliderFloat("Translate Z", &worldTranslate[2], -1, 1);
 							if (ImGui::Button("Reset Translating")) {
 								worldTranslate = glm::vec3(0.0f, 0.0f, 0.0f);
 							}
@@ -843,19 +881,120 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 						model1.setWorldTransformationUpdates(worldScale, worldRotate, worldTranslate);
 						ImGui::TreePop();
 					}
-					if (ImGui::TreeNode("model color selection:")) {
-						glm::vec3 currMeshColor = model1.GetColor();
-						float Color[3] = { currMeshColor[0], currMeshColor[1],currMeshColor[2] };
-						ImGui::ColorEdit3("choose color", (float*)&Color);
+					if (ImGui::TreeNode("model color or texture selection:")) {
+						bool isColor = ImGui::RadioButton("Color", &model1.isTexture, 0);
+						ImGui::SameLine();
+						bool isTex = ImGui::RadioButton("Texture", &model1.isTexture, 1);
+						if (model1.isTexture == 0) {
+							glm::vec3 currMeshColor = model1.GetColor();
+							float Color[3] = { currMeshColor[0], currMeshColor[1],currMeshColor[2] };
+							ImGui::ColorEdit3("choose color", (float*)&Color);
 
-						for (int i = 0; i < 3; i++) {
-							currMeshColor[i] = Color[i];
+							for (int i = 0; i < 3; i++) {
+								currMeshColor[i] = Color[i];
+							}
+							model1.SetColor(currMeshColor);
+
+							ImGui::ColorEdit3("ambient color", (float*)&model1.ambientColor);
+							ImGui::ColorEdit3("diffuse color", (float*)&model1.diffuseColor);
+							ImGui::ColorEdit3("specular color", (float*)&model1.specularColor);
+							
 						}
-						model1.SetColor(currMeshColor);
+						else if (model1.isTexture == 1) {
+							if (ImGui::Button("Add Texture")) {
+								nfdchar_t* outPath = NULL;
+								nfdresult_t result = NFD_OpenDialog("jpg", NULL, &outPath);
+								if (result == NFD_OKAY) {
 
-						ImGui::ColorEdit3("ambient color", (float*)&model1.ambientColor);
-						ImGui::ColorEdit3("diffuse color", (float*)&model1.diffuseColor);
-						ImGui::ColorEdit3("specular color", (float*)&model1.specularColor);
+									//MeshModel& model = scene.GetActiveModel();
+									if (&model1 != nullptr) {
+										
+										model1.LoadTextures(outPath);
+									}
+									free(outPath);
+								}
+								else if (result == NFD_CANCEL) {
+								}
+								else {
+								}
+
+							}
+							if (ImGui::Button("Planar Projection")) {
+								model1.usePlanarMap();
+							}
+							if (ImGui::Button("Cylindrical Projection")) {
+								model1.useCylindricalMap();
+							}
+							if (ImGui::Button("Use Spherical Projection")) {
+								model1.useSphericalMap();
+							}
+							static bool  normalMapping = false;
+							ImGui::Checkbox("enable normal mapping", &normalMapping);
+							
+							if (normalMapping) {
+								if (ImGui::Button("Add Normal map")) {
+									nfdchar_t* outPath = NULL;
+									nfdresult_t result = NFD_OpenDialog("jpg", NULL, &outPath);
+									if (result == NFD_OKAY) {
+
+										//MeshModel& model = scene.GetActiveModel();
+										if (&model1 != nullptr) {
+
+											model1.LoadNormalMap(outPath);
+											model1.isNormalMap = true;
+										}
+										free(outPath);
+									}
+									else if (result == NFD_CANCEL) {
+									}
+									else {
+									}
+
+								}
+							}
+							else {
+								model1.isNormalMap = false;
+							}
+							static bool  envMapping = false;
+							if (ImGui::Button("enable environment mapping")) {
+								//	//model1.LoadEnvironmentMap(" ");
+								scene.isEnv = true;
+							}
+								
+							//}
+							/*	nfdchar_t* outPath = NULL;
+								nfdresult_t result = NFD_OpenDialog("jpg", NULL, &outPath);
+								if (result == NFD_OKAY) {
+
+									//MeshModel& model = scene.GetActiveModel();
+									if (&model1 != nullptr) {
+
+										model1.LoadEnvironmentMap(outPath);
+										model1.isEnvMap = true;
+									}
+									free(outPath);
+								}
+								else if (result == NFD_CANCEL) {
+								}
+								else {
+								}*/
+							//}
+
+								//model1.isEnvMap = true;
+
+							/*if (envMapping) {
+								model1.isEnvMap = true;
+							}*/
+
+							
+						}
+						static bool toon = model1.isToon;
+						ImGui::Text("Toon shading:");
+						//if (ImGui::Checkbox("Toon Shading Effect", &toon)) {
+							ImGui::SliderInt("Number of color bits", &model1.numOfColorBits, 2, 255);
+							//model1.isToon = toon;
+						//}
+						//model1.numOfColorBits = 256 - model1.numOfColorBits;
 						ImGui::TreePop();
 					}
 
@@ -977,9 +1116,9 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 
 						if (ImGui::CollapsingHeader("Translating", ImGuiTreeNodeFlags_None))
 						{
-							ImGui::SliderFloat("Translate X", &Translate[0], -windowsWidth, windowsWidth);
-							ImGui::SliderFloat("Translate Y", &Translate[1], -windowsHeight, windowsHeight);
-							ImGui::SliderFloat("Translate Z", &Translate[2], -maxWindow, maxWindow);
+							ImGui::SliderFloat("Translate X", &Translate[0], -1, 1);
+							ImGui::SliderFloat("Translate Y", &Translate[1], -1, 1);
+							ImGui::SliderFloat("Translate Z", &Translate[2], -1, 1);
 							if (ImGui::Button("Reset trasnalte")) {
 								Translate = glm::vec3(0.0f, 0.0f, 0.0f);
 							}
@@ -1009,9 +1148,9 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 
 						if (ImGui::CollapsingHeader("Translating", ImGuiTreeNodeFlags_None))
 						{
-							ImGui::SliderFloat("Translate X", &worldTranslate[0], -windowsWidth, windowsWidth);
-							ImGui::SliderFloat("Translate Y", &worldTranslate[1], -windowsHeight, windowsHeight);
-							ImGui::SliderFloat("Translate Z", &worldTranslate[2], -maxWindow, maxWindow);
+							ImGui::SliderFloat("Translate X", &worldTranslate[0], -1, 1);
+							ImGui::SliderFloat("Translate Y", &worldTranslate[1], -1, 1);
+							ImGui::SliderFloat("Translate Z", &worldTranslate[2], -1 , 1);
 							if (ImGui::Button("Reset trasnalte")) {
 								worldTranslate = glm::vec3(0.0f, 0.0f, 0.0f);
 							}
