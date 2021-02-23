@@ -1,5 +1,7 @@
 
 
+
+
 # Assignment 3
 
 
@@ -12,9 +14,9 @@ The use for this function is to handle the screen as  two triangles and map the 
 
 We declare two arrays, one (vtc)  defines the coordinates of the screen "model" that we want to map, the other  (tex) defines the coordinates of the texture that we are going to map into.
 
-we dynamically allocate memory on the GPU, for the new buffer the size of  sizeof(vtc)+sizeof(tex) , and then we set the data of the two arrays we defines earlier.
+we dynamically allocate memory on the GPU, for the new buffer with size of  sizeof(vtc)+sizeof(tex) , and then we set the data of the two arrays we defined earlier.
 
-We initialize the  shaders and bind them to the current program,  we send the screen coordinates (which were defines in the vtc array)  to vPosition ,   we send the mapping coordinates (which were defines in the tex array)  to vTexCoord , both to the vertex shader.
+We initialize the  shaders and bind them to the current program,  we send the screen coordinates (which were defined in the vtc array)  to vPosition ,   we send the mapping coordinates (which were defined in the tex array)  to vTexCoord , both to the vertex shader.
 
 Vertex shader sends screen coordinates to fragment shader  that uses vTexCoord  to map the texture to the screen using textureLod().
 
@@ -210,35 +212,160 @@ void main()
 
 ```
 
+
+
+
+
+### 
+
+```c++
+void Renderer::Render(const Scene& scene)
+{
+	int lightCount = scene.GetLightCount();
+	glm::vec3 lightAmbientColors[10];
+	glm::vec3 lightDiffuseColors[10];
+	glm::vec3 lightSpecularColors[10];
+	glm::vec4 lightSpecularColorsAlpha[10];
+
+	glm::vec4 lightPos[10];
+	glm::vec4 lightType[10];
+
+
+	Camera& currentcam = scene.GetActiveCamera();
+	glm::fmat4x4 inversercameratransformation = glm::lookAt(currentcam.getEye(), currentcam.getAt(), currentcam.getUp());
+	glm::fmat4x4 viewvolumetransformation = currentcam.GetViewTransformation();
+	glm::fmat4x4 camTransformation = viewvolumetransformation * inversercameratransformation;
+
+
+	//TODO figue out waht to do here
+	for (int i = 0; i < lightCount; ++i)
+	{
+		Light& currentLight = scene.GetLight(i);
+		glm::fmat4x4 lightTransformation = inversercameratransformation * currentLight.getTransformation();
+
+		// setup lights
+		if (i < lightCount) {
+			lightAmbientColors[i]= currentLight.ambientColor;
+			lightDiffuseColors[i] = currentLight.diffuseColor;
+			lightSpecularColors[i] = currentLight.specularColor;
+			lightSpecularColorsAlpha[i] = glm::fvec4(currentLight.alpha, currentLight.alpha, currentLight.alpha,1);
+
+			if (scene.GetLight(i).getTypeOfLight()) {	//point
+				lightPos[i] = glm::vec4(Utils::applyTransformationToVector(glm::fvec3(0,0,0) , lightTransformation), 1);
+				lightType[i] = glm::vec4(0);
+			}
+			else {										//paraller 
+				lightPos[i] = glm::vec4(Utils::applyTransformationToNormal(glm::fvec3(0.0f, 1.0f, 0.0f), lightTransformation), 1.0f);
+				lightType[i] = glm::vec4(1);
+
+			}
+		}
+	}
+
+	
+
+	colorShader.use();
+	
+	GLuint cur_vao;
+	GLuint cur_vbo;
+
+	colorShader.setUniform("lightAmbientColors", lightAmbientColors);
+	colorShader.setUniform("lightDiffuseColors", lightDiffuseColors);
+	colorShader.setUniform("lightSpecularColors", lightSpecularColors);
+	colorShader.setUniform("lightSpecularColorsAlpha", lightSpecularColorsAlpha);
+	colorShader.setUniform("material.textureMap", 0);
+	colorShader.setUniform("material.nomralMap", 1);
+
+	colorShader.setUniform("lightPos", lightPos);
+	colorShader.setUniform("lightsCount", lightCount);
+	colorShader.setUniform("lightType", lightType);
+	
+
+	int modelCount = scene.GetModelCount();
+	for (int currentModelIndex = 0; currentModelIndex < modelCount; currentModelIndex++)
+	{
+		MeshModel& currentModel = scene.GetModel(currentModelIndex);
+
+		//scalling model to fit screen
+		float proportion = 0.5 / currentModel.getMaxDitancePoints();
+		glm::fmat4x4 scale = Utils::TransformationScale(glm::fvec3(proportion, proportion, proportion));
+
+		// second  multiplying with inverse(worldTransformation) * objectTransformation
+		glm::fmat4x4 modelTransformation = currentModel.getTransformation();
+
+		//rendering active camera view
+		Camera& currentCam = scene.GetActiveCamera();
+		glm::fmat4x4 inverserCameraTransformation = glm::lookAt(currentCam.getEye(), currentCam.getAt(), currentCam.getUp());
+		glm::fmat4x4 viewVolumeTransformation= currentCam.GetViewTransformation();
+
+
+		glm::fmat4x4 tmpTransformation = viewVolumeTransformation * inverserCameraTransformation * modelTransformation * scale;
+
+		glm::vec3 fsEye = Utils::applyTransformationToVector(scene.GetActiveCamera().getEye(), tmpTransformation);
+
+		colorShader.setUniform("eye",fsEye);
+		colorShader.setUniform("finalTransformation", tmpTransformation);
+		colorShader.setUniform("normalTransformation", tmpTransformation);
+		colorShader.setUniform("modelColor", glm::vec4(currentModel.GetColor(), 1.0f));
+		colorShader.setUniform("material.AmbientColor", currentModel.ambientColor);
+		colorShader.setUniform("material.DiffuseColor", currentModel.diffuseColor);
+		colorShader.setUniform("material.SpecualrColor", currentModel.specularColor);
+		colorShader.setUniform("isTexture", currentModel.isTexture);
+		colorShader.setUniform("numOfBits", 256 - currentModel.numOfColorBits);
+		colorShader.setUniform("mapNormal", currentModel.isNormalMap);
+
+		colorShader.setUniform("scale", scale);
+		colorShader.setUniform("modelTransformation", modelTransformation);
+		colorShader.setUniform("inverserCameraTransformation", inverserCameraTransformation);
+		colorShader.setUniform("viewVolumeTransformation", viewVolumeTransformation);
+
+		cur_vao = currentModel.getVAO();
+		cur_vbo = currentModel.getVBO();
+		
+
+		// Drag our model's faces (triangles) in fill mode
+		currentModel.texture.bind(0);
+		currentModel.nomralMap.bind(1);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glBindVertexArray(cur_vao);
+		glDrawArrays(GL_TRIANGLES, 0, currentModel.getVertexes().size());
+		glBindVertexArray(0);
+		currentModel.texture.unbind(0);
+		currentModel.nomralMap.unbind(1);
+	}	
+}
+
+```
+
+
+
 ### OpenGL
 
 #### Lighting and object Transformation
 
 #### parallel
 
-##### Ambient
+##### Ambient 																		Diffuse																Specular
 
-<img src="./pictures/MeshViewer_rIOSexXM8j.png" width="400">
 
-##### Diffuse
 
-<img src="./pictures/MeshViewer_O9aksG705R.png" width="400">
-
-##### Specular
-
-<img src="./pictures/MeshViewer_joiLVHAnW7.png" width="400">
+<img src="./pictures/MeshViewer_rIOSexXM8j.png" width="300"> <img src="./pictures/MeshViewer_O9aksG705R.png" width="300"> <img src="./pictures/MeshViewer_joiLVHAnW7.png" width="300">
 
 
 
 #### Point light source
 
-##### Diffuse
+##### 						Diffuse																								 Specular
 
-<img src="./pictures/TrRqcKv3y0.png" width="400">
 
-##### Specular
 
-<img src="./pictures/MeshViewer_Qyp1wVMRa4.png" width="400">
+<img src="./pictures/TrRqcKv3y0.png" width="400"><img src="./pictures/MeshViewer_Qyp1wVMRa4.png" width="400">
+
+### Large models
+
+<img src="./pictures/Zoom_XqzpcjyJGN.png" width="400"> <img src="./pictures/Zoom_bXTQqQppiC.png" width="400">
+
+
 
 #### Texture with light
 
@@ -282,7 +409,7 @@ We will use a sphere to show Spherical  projection. we will use the same jpg ima
 
 ### Toon Shading (without silhouette)
 
-Here we can see the progression of choosing 2  , 100, 150, 200, 255  shades of each color. (without silhouette)
+Here we can see the progression of choosing 2, 100, 150, 200 ,255  shades of each color. (without silhouette)
 
  <img src="./pictures/MeshViewer_LNV5awLqty.png" width="150"> <img src="./pictures/MeshViewer_CRVbgtVcQa.png" width="150"> <img src="./pictures/MeshViewer_IwYDgChz2p.png" width="150"> <img src="./pictures/MeshViewer_lLxljMjh78.png" width="150"> <img src="./pictures/MeshViewer_LIY7LFuFe5.png" width="150"> 
 
@@ -290,6 +417,29 @@ Here we can see the progression of choosing 2  , 100, 150, 200, 255  shades of e
 
 ### Normal mapping
 
-we have a scene with lights, the object without normal mapping on the left, and with normal mapping on the right.
+we have a scene with lights, the object without normal mapping on the right, and with normal mapping on the left.
 
-<img src="./pictures/WhatsApp Image 2021-02-19 at 23.22.10.jpeg" width="800"> 
+<img src="./pictures/Hzr0i7X27W.png" width="800">
+
+   
+
+### Environmental mapping 
+
+we have perspective vie on the left and orthographic view on the right.
+
+<img src="./pictures/sphere on a perspective look.png" width="400"><img src="./pictures/‏‏sphere.png" width="400">
+
+
+
+The classic.
+
+<img src="./pictures/teapot.png" width="800">
+
+T-1000 ROBOT came back as Beethoven and coming to hunt us download.png.
+
+<img src="./pictures/when beethoven becomes terminator2.png" width="400"> <img src="./pictures/download.png" width="400">
+
+
+
+
+
