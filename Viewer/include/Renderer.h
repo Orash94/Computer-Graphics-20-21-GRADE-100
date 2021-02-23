@@ -23,6 +23,7 @@ public:
 	void applyExponentialSquaredFogging();
 	void loadShaders();
 	Scene& scene;
+	void LoadTextures();
 
 	
 private:
@@ -67,4 +68,10 @@ private:
 
 
 	ShaderProgram colorShader;
+	ShaderProgram skyboxShader;
+	ShaderProgram cubeMapShader;
+	Texture2D textureSky;
+	GLuint cubeTex;
+	GLuint cubeVAO, cubeVBO;
+	GLuint skyboxVAO, skyboxVBO;
 };

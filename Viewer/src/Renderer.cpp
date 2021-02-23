@@ -583,7 +583,137 @@ void Renderer::loadShaders()
 	
 	//.. / computergraphics2021 - or -and -abed/Viewer/shaders/
 	colorShader.loadShaders("vshader.glsl", "fshader.glsl");
+	skyboxShader.loadShaders("vshader_skybox.glsl", "fshader_skybox.glsl");
+	cubeMapShader.loadShaders("vshader_cubemap.glsl", "fshader_cubemap.glsl");
 
+}
+
+void Renderer::LoadTextures()
+{
+	GLfloat cubeVertices[] =
+	{
+		// Positions          // Texture Coords
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+	};
+
+	GLfloat skyboxVertices[] = {
+		// Positions
+		-1.0f,  1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		-1.0f,  1.0f, -1.0f,
+		1.0f,  1.0f, -1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		1.0f, -1.0f,  1.0f
+	};
+	
+	glGenVertexArrays(1, &cubeVAO);
+	glGenBuffers(1, &cubeVBO);
+	glBindVertexArray(cubeVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), &cubeVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	glBindVertexArray(0);
+
+
+	glGenVertexArrays(1, &skyboxVAO);
+	glGenBuffers(1, &skyboxVBO);
+	glBindVertexArray(skyboxVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+	glBindVertexArray(0);
+
+
+
+	std::vector<std::string> faces
+	{
+		"../computergraphics2021-or-and-abed/Data/posx.jpg",
+		"../computergraphics2021-or-and-abed/Data/negx.jpg",
+		"../computergraphics2021-or-and-abed/Data/posy.jpg",
+		"../computergraphics2021-or-and-abed/Data/negy.jpg",
+		"../computergraphics2021-or-and-abed/Data/posz.jpg",
+		"../computergraphics2021-or-and-abed/Data/negz.jpg"
+	};
+	cubeTex = textureSky.loadCubemap(faces);
 }
 
 
@@ -1118,8 +1248,24 @@ void Renderer::Render(const Scene& scene)
 
 	
 
-	colorShader.use();
 	
+	
+	glDepthFunc(GL_LEQUAL); 
+	skyboxShader.use();
+	skyboxShader.setUniform("inverserCameraTransformation", inversercameratransformation);
+	skyboxShader.setUniform("viewVolumeTransformation", viewvolumetransformation);
+	skyboxShader.setUniform("skybox", 0);
+	textureSky.bind(cubeTex);
+	glBindVertexArray(skyboxVAO);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTex);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glBindVertexArray(0);
+	glDepthFunc(GL_LEQUAL); // Set depth function back to default
+	textureSky.unbind(cubeTex);
+
+
+	colorShader.use();
+
 	GLuint cur_vao;
 	GLuint cur_vbo;
 
@@ -1129,12 +1275,11 @@ void Renderer::Render(const Scene& scene)
 	colorShader.setUniform("lightSpecularColorsAlpha", lightSpecularColorsAlpha);
 	colorShader.setUniform("material.textureMap", 0);
 	colorShader.setUniform("material.nomralMap", 1);
+	colorShader.setUniform("material.skybox", 0);
 
 	colorShader.setUniform("lightPos", lightPos);
 	colorShader.setUniform("lightsCount", lightCount);
 	colorShader.setUniform("lightType", lightType);
-	
-
 	int modelCount = scene.GetModelCount();
 	for (int currentModelIndex = 0; currentModelIndex < modelCount; currentModelIndex++)
 	{
@@ -1179,13 +1324,14 @@ void Renderer::Render(const Scene& scene)
 
 		// Drag our model's faces (triangles) in fill mode
 		currentModel.texture.bind(0);
-		currentModel.nomralMap.bind(1);
+		//currentModel.nomralMap.bind(1);
+		glBindVertexArray(currentCam.getVAO());
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		glBindVertexArray(cur_vao);
+		glBindVertexArray(scene.GetActiveModel().getVAO());
 		glDrawArrays(GL_TRIANGLES, 0, currentModel.getVertexes().size());
 		glBindVertexArray(0);
 		currentModel.texture.unbind(0);
-		currentModel.nomralMap.unbind(1);
+		//currentModel.nomralMap.unbind(1);
 	}
 
 	//PostProcessing();

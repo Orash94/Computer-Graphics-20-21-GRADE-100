@@ -250,18 +250,9 @@ void MeshModel::usePlanarMap()
 void MeshModel::useCylindricalMap()
 {
 	float pi = 3.14159265359;
-	//phi = atan2(x / y); theta = atan2(x / z)
 	float phi, theta;
 	
 	for (Vertex& vertex : modelVertices) {
-		/*float theta = glm::atan(vertex.position[2] / vertex.position[0]);
-		vertex.textureCoords = glm::normalize(glm::abs(glm::vec2(glm::cos(theta), glm::sin(theta))));*/
-
-		/*float x, y;
-		x = glm::cos(vertex.position[0] * 2 * pi);
-		y = glm::sin(vertex.position[1] * 2 * pi);
-		vertex.textureCoords = glm::normalize(glm::vec2(x, y));*/
-		
 		phi = std::atan2(vertex.position[0] , vertex.position[1]);
 		theta = std::atan2(vertex.position[0] , vertex.position[2]);
 		vertex.textureCoords = glm::vec2(phi, theta);

@@ -74,8 +74,9 @@ int main(int argc, char **argv)
 	
 
 
-	Renderer renderer = Renderer(frameBufferWidth, frameBufferHeight ,scene);
+	Renderer& renderer = Renderer(frameBufferWidth, frameBufferHeight ,scene);
 	renderer.loadShaders();
+	renderer.LoadTextures();
 	
 	
 	ImGuiIO& io = SetupDearImgui(window);
@@ -393,6 +394,10 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 			//---------------------------------Scene --------------------------
 			if (ImGui::CollapsingHeader("Scene Actions", ImGuiTreeNodeFlags_None))
 			{
+				if (ImGui::Button("enable environment mapping")) {
+					//model1.LoadEnvironmentMap(" ");
+					scene.isEnv = true;
+				}
 				ImGui::Checkbox("WireFram", &scene.wireFrame);
 				ImGui::ColorEdit3("background color", (float*)&scene.backgroundColor);
 				
@@ -950,6 +955,37 @@ void DrawImguiMenus(ImGuiIO& io, Scene& scene)
 							else {
 								model1.isNormalMap = false;
 							}
+							static bool  envMapping = false;
+							if (ImGui::Button("enable environment mapping")) {
+								//	//model1.LoadEnvironmentMap(" ");
+								scene.isEnv = true;
+							}
+								
+							//}
+							/*	nfdchar_t* outPath = NULL;
+								nfdresult_t result = NFD_OpenDialog("jpg", NULL, &outPath);
+								if (result == NFD_OKAY) {
+
+									//MeshModel& model = scene.GetActiveModel();
+									if (&model1 != nullptr) {
+
+										model1.LoadEnvironmentMap(outPath);
+										model1.isEnvMap = true;
+									}
+									free(outPath);
+								}
+								else if (result == NFD_CANCEL) {
+								}
+								else {
+								}*/
+							//}
+
+								//model1.isEnvMap = true;
+
+							/*if (envMapping) {
+								model1.isEnvMap = true;
+							}*/
+
 							
 						}
 						static bool toon = model1.isToon;

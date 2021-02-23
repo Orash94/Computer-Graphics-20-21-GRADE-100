@@ -29,7 +29,7 @@ public:
 
 	void SetActiveCameraIndex(int index);
 	int GetActiveCameraIndex() const;
-
+	bool isEnv = false;
 	void SetActiveModelIndex(int index);
 	int GetActiveModelIndex() const;
 

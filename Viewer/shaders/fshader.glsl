@@ -6,7 +6,7 @@ struct Material
 {
 	sampler2D textureMap;
 	sampler2D nomralMap;
-	
+	samplerCube skybox;
 	// You can add more fields here...
 	// Such as:
 	//		1. diffuse/specular relections constants
@@ -21,6 +21,7 @@ struct Material
 // We set this field's properties from the C++ code
 uniform Material material;
 
+//uniform samplerCube skybox;
 
 uniform vec4 modelColor;
 uniform vec4 wirmframe_color;
@@ -38,6 +39,7 @@ uniform vec4 lightType [10];
 uniform int lightsCount;
 uniform int isTexture;
 uniform bool mapNormal;
+uniform bool mapEnv;
 //uniform sampler2D nomralMap;
 
 in vec2 fragTexCoords;
@@ -97,7 +99,6 @@ void main()
 		vec3 Eye  =  -(fragPos.xyz /fragPos.w) ; // if we assume eye is at (0,0,0)
 		Reflection = normalize(-reflect(LightDirection,N));
 
-		
 
 		IA = AmbientColor * lightAmbientColors[i];
 
@@ -107,6 +108,7 @@ void main()
 
 		IS = SpecualrColor* lightSpecularColors[i] * pow(max(dot(Reflection,Eye),0.0),lightSpecularColorsAlpha[i][0]) ;
 		IS = clamp(IS, 0.0, 1.0); 
+
 	}
 	if (lightsCount != 0){
 		frag_color = vec4(IA + ID + IS,1) ;
@@ -134,6 +136,17 @@ void main()
 	}
 
 	frag_color = (round(frag_color*255 / numOfBits) *  numOfBits) / 255 ;
+
+	
+	//vec3 I = normalize(vec3(fragPos.x - eye.x, fragPos.y - eye.y, fragPos.z + eye.z));
+	vec3 I = normalize(fragPos.xyz);
+	Reflection = reflect(I,N); 
+
+	vec3 reflectedColor = vec3(texture(material.skybox,Reflection));
+	//vec4 decalColor = texture(material.textureMap, fragTexCoords);
+	frag_color = vec4(reflectedColor,1.0);
+
+
 
 }
 
