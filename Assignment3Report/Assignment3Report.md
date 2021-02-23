@@ -292,4 +292,4 @@ Here we can see the progression of choosing 2  , 100, 150, 200, 255  shades of e
 
 we have a scene with lights, the object without normal mapping on the left, and with normal mapping on the right.
 
-<img src="./pictures/Zoom_b83ppWWKED.png" width="350"> <img src="./pictures/Zoom_EGnf43jvsY.png" width="350">
+<img src="./pictures/WhatsApp Image 2021-02-19 at 23.22.10.jpeg" width="800"> 
